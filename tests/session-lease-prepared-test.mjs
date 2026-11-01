@@ -16,7 +16,7 @@ if (negative) {
   moduleSource = moduleSource.replace("hash.digest('hex') !== proof.digest", 'false');
 }
 // This count hook exists only in the in-memory test module, never the resource.
-moduleSource += '\nexport const __testSlotCount = backend => slots.get(backend)?.size ?? 0;\n';
+moduleSource += '\nexport const __testSlotCount = backend => slots.get(backendKey(backend))?.size ?? 0;\n';
 const core = await import('data:text/javascript;base64,' + Buffer.from(moduleSource).toString('base64'));
 const directory = await mkdtemp(join(tmpdir(), 'dsh-checkpoint-proof-'));
 const originalOpen = fs.promises.open, originalStat = fs.promises.stat;
@@ -65,6 +65,22 @@ try {
     const proof = await core.verifyPreparedCheckpoint(backend, writer);
     assert.equal(proof.bytes, buffer.length); assert.equal(proof.digest.length, 64);
     assert.equal(writer.lease.released, false);
+  });
+  await test('context proxies share checkpoint ownership and invalidation for one backend', async () => {
+    const { backend, writer, stored } = await fixture();
+    const first = new Proxy(backend, {}), second = new Proxy(backend, {});
+    assert.notEqual(first, second);
+    assert(core.checkpointFromDecoded(first, writer, stored));
+    assert(await core.verifyPreparedCheckpoint(second, writer));
+    core.invalidatePreparedCheckpoint(first, writer.id);
+    assert.equal(core.adoptDecodedCheckpoint(second, writer, stored), false);
+    assert.equal(core.hasPreparedCheckpoint(writer), false);
+  });
+  await test('a replacement backend cannot reuse another backend checkpoint', async () => {
+    const { backend, writer, stored } = await fixture();
+    const replacement = { ...backend, tracker: { writers: new Map([[writer.id, writer]]) } };
+    assert.equal(core.adoptDecodedCheckpoint(replacement, writer, stored), false);
+    assert.throws(() => core.checkpointFromDecoded(replacement, writer, stored), unstable);
   });
   await test('logical header ordering and the persisted delegation default preserve the proof', async () => {
     const { backend, writer, path, buffer } = await fixture();

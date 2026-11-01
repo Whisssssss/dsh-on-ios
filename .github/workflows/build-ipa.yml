@@ -66,6 +66,7 @@ on:
       - "tests/fixtures/cloud-build/**"
       - "scripts/restore-pinned-rootfs.py"
       - "tests/pinned-rootfs-restore-test.py"
+      - "tests/root-upgrade-data-test.py"
       - "scripts/check-workspace-export-app.py"
       - "tests/workspace-export-app-test.py"
       - "scripts/check-required-export-tests.py"
@@ -505,6 +506,7 @@ jobs:
           node --test tests/welcome-touch-test.mjs 2>&1 | tee cilogs-verify/welcome-touch.log
           DSH_TAPGAME_IPA=tests/fixtures/cloud-build/TapGame_unsigned.ipa node --test tests/workspace-export-test.mjs 2>&1 | tee cilogs-verify/workspace-export.log
           python3 tests/pinned-rootfs-restore-test.py 2>&1 | tee cilogs-verify/pinned-rootfs-restore-tests.log
+          python3 tests/root-upgrade-data-test.py 2>&1 | tee cilogs-verify/root-upgrade-data-tests.log
           python3 tests/workspace-export-app-test.py 2>&1 | tee cilogs-verify/workspace-export-app-tests.log
           python3 tests/required-export-tests-test.py 2>&1 | tee cilogs-verify/required-export-tests-tests.log
           python3 tests/required-welcome-tests-test.py 2>&1 | tee cilogs-verify/required-welcome-tests-tests.log

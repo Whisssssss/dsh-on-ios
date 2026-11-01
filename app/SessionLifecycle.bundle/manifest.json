@@ -272,7 +272,7 @@
     {
       "source": "session-checkpoint-core.mjs",
       "target": "/usr/local/share/dsh/session-checkpoint-core.mjs",
-      "sha256": "3122a8c9aceb4e289d9651eaef010bb1fd9bfdd429dbf5e31e9cacf9a4a4cec8",
+      "sha256": "2eff975fbe8dd1094fe4370bb3b4866805c5abe4001c2afd39d51f1dfdd036d6",
       "previous_sha256": []
     }
   ]

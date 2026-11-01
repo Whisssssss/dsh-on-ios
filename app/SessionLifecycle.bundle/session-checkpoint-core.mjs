@@ -7,17 +7,20 @@ const decoded = new WeakMap();
 const prepared = new WeakMap();
 const poisoned = new WeakSet();
 const slots = new WeakMap();
+// Cordis wraps a service in fresh context proxies on method calls. The tracker
+// is one stable object owned by that backend's lifetime, including its handles.
+const backendKey = backend => backend.tracker;
 const changed = () => Object.assign(new Error('session checkpoint changed'), { code: 'DSH_SESSION_CHECKPOINT_CHANGED' });
 const unstable = () => Object.assign(new Error('session checkpoint has no complete stable snapshot'), { code: 'DSH_SESSION_CHECKPOINT_UNSTABLE' });
 
 function slot(backend, id) {
-  let entries = slots.get(backend);
-  if (!entries) slots.set(backend, entries = new Map());
+  let entries = slots.get(backendKey(backend));
+  if (!entries) slots.set(backendKey(backend), entries = new Map());
   let value = entries.get(id);
   if (!value) entries.set(id, value = { epoch: 0, path: undefined });
   return value;
 }
-function currentSlot(backend, id) { return slots.get(backend)?.get(id); }
+function currentSlot(backend, id) { return slots.get(backendKey(backend))?.get(id); }
 function physicalIdentity(value) {
   return [value.dev, value.ino, value.size, value.mtimeNs, value.ctimeNs].map(String).join(':');
 }
@@ -82,7 +85,7 @@ export function invalidatePreparedCheckpoint(backend, id) {
   if (writer) prepared.delete(writer);
 }
 export function invalidatePreparedPath(backend, path) {
-  const entries = slots.get(backend);
+  const entries = slots.get(backendKey(backend));
   const ids = new Set();
   if (entries) for (const [id, entry] of entries) if (entry.path === path) ids.add(id);
   for (const writer of backend.tracker.writers.values()) {
@@ -101,19 +104,19 @@ export function retirePreparedCheckpoint(backend, writer) {
   assertCheckpointNotPoisoned(writer);
   const entry = currentSlot(backend, writer.id);
   if (entry) entry.epoch += 1;
-  slots.get(backend)?.delete(writer.id);
+  slots.get(backendKey(backend))?.delete(writer.id);
   prepared.delete(writer);
 }
 export function retireUnadoptedCheckpoint(backend, id) {
   if (backend.tracker.writers.get(id) !== null) return;
   const entry = currentSlot(backend, id);
   if (entry) entry.epoch += 1;
-  slots.get(backend)?.delete(id);
+  slots.get(backendKey(backend))?.delete(id);
 }
 export function adoptDecodedCheckpoint(backend, writer, stored, constructing = false) {
   assertCheckpointNotPoisoned(writer);
   const record = decoded.get(stored);
-  if (!record || record.context.backend !== backend || record.context.id !== writer.id
+  if (!record || backendKey(record.context.backend) !== backendKey(backend) || record.context.id !== writer.id
       || currentSlot(backend, writer.id) !== record.context.entry || record.context.entry.epoch !== record.context.epoch
       || !liveLease(writer) || writer.access !== 'write'
       || (!constructing && backend.tracker.writers.get(writer.id) !== writer)

@@ -20,7 +20,7 @@ def main():
         if not negative:
             sys.stdout.write(result.stdout)
             sys.stderr.write(result.stderr)
-            if result.returncode != 0 or 'SESSION_PREPARED_HOST_TESTS 32/32; native_flock_executed=false' not in result.stdout:
+            if result.returncode != 0 or 'SESSION_PREPARED_HOST_TESTS 34/34; native_flock_executed=false' not in result.stdout:
                 return 1
         elif (result.returncode != 1 or 'Missing expected rejection' not in result.stderr
               or 'SESSION_PREPARED_HOST_TESTS' in result.stdout):
