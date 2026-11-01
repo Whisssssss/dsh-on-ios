@@ -1,0 +1,141 @@
+name: Harness first-launch diagnostic (not IPA acceptance)
+'on':
+  push:
+    branches:
+    - upgrade/harness-0.2.1-rc.3
+    paths:
+    - .github/workflows/harness-ui-diagnostic.yml
+    - scripts/run-harness-ui-diagnostic.sh
+permissions:
+  contents: read
+  actions: read
+env:
+  HOMEBREW_NO_AUTO_UPDATE: '1'
+  HOMEBREW_NO_INSTALL_CLEANUP: '1'
+  HOMEBREW_NO_ENV_HINTS: '1'
+  HOMEBREW_NO_ANALYTICS: '1'
+jobs:
+  diagnostic:
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      INPUT_XCODE_PATH: ''
+      INPUT_FORCE_ROOTFS: 'true'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+    - name: Host info
+      run: 'set -x
+
+        sw_vers
+
+        uname -m
+
+        HOSTNAME_VALUE="$(hostname)"
+
+        echo "hostname: ''${HOSTNAME_VALUE}'' (${#HOSTNAME_VALUE} chars)"
+
+        uname -a
+
+        df -h /
+
+        echo "--- runner labels ---"
+
+        echo "ImageOS=$ImageOS  ImageVersion=$ImageVersion"
+
+        echo "--- installed Xcodes ---"
+
+        ls -d /Applications/Xcode*.app 2>/dev/null || true
+
+        xcodebuild -version || true
+
+        '
+    - name: Select Xcode
+      id: xcode
+      run: 'set -euo pipefail
+
+        XC="$(python3 scripts/select-xcode.py --requested "${INPUT_XCODE_PATH:-}")"
+
+        sudo xcode-select -s "$XC/Contents/Developer"
+
+        echo "selected: $XC"
+
+        xcode-select -p
+
+        xcodebuild -version
+
+        echo "xcode_path=$XC" >> "$GITHUB_OUTPUT"
+
+        '
+    - name: Install build tools (meson ninja lld libarchive)
+      run: "set -euo pipefail\n# libarchive is required even though the README does not mention it:\n# ish-arm64/tools/meson.build\
+        \ only builds tools/fakefsify (and the\n# unfakefsify symlink) when a *host* libarchive is found, and\n# scripts/build-rootfs.sh\
+        \ hard-fails without fakefsify.\nbrew install meson ninja lld libarchive\n\nLLD_BIN=\"$(brew --prefix lld)/bin\"\n\
+        echo \"$LLD_BIN\" >> \"$GITHUB_PATH\"\nexport PATH=\"$LLD_BIN:$PATH\"\n\n# Homebrew's libarchive may be keg-only;\
+        \ make it visible to\n# meson's pkg-config probe. The meson file also falls back to\n# /opt/homebrew/opt/libarchive/lib,\
+        \ so either path works.\necho \"PKG_CONFIG_PATH=$(brew --prefix libarchive)/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}\"\
+        \ >> \"$GITHUB_ENV\"\n\necho \"--- toolchain ---\"\ncommand -v meson && meson --version\ncommand -v ninja && ninja\
+        \ --version\ncommand -v ld.lld && ld.lld --version\ncommand -v node && node -v\ncommand -v npm && npm -v\ncommand\
+        \ -v python3 && python3 -V\nif pkg-config --exists libarchive; then\n  echo \"libarchive (pkg-config): $(pkg-config\
+        \ --modversion libarchive)\"\nelse\n  echo \"libarchive: not visible to pkg-config; meson will use the /opt/homebrew/opt/libarchive/lib\
+        \ fallback\"\nfi\n"
+    - name: Ensure xcodeproj gem
+      run: "set -euo pipefail\nif ruby -e 'require \"xcodeproj\"' 2>/dev/null; then\n  echo \"xcodeproj gem already available\
+        \ to $(command -v ruby)\"\nelse\n  gem install xcodeproj --no-document || sudo gem install xcodeproj --no-document\n\
+        fi\nruby -e 'require \"xcodeproj\"; puts \"xcodeproj #{Xcodeproj::VERSION}\"'\n"
+    - name: Build iSH-ARM64 emulator
+      run: 'set -euo pipefail
+
+        mkdir -p cilogs
+
+        make emulator 2>&1 | tee cilogs/01-emulator.log
+
+        '
+    - name: Verify emulator toolchain
+      run: "set -euo pipefail\nB=ish-arm64/build-arm64-release\nfor f in ish tools/fakefsify tools/unfakefsify; do\n  if [\
+        \ -x \"$B/$f\" ]; then\n    echo \"ok: $B/$f\"\n  else\n    echo \"error: missing $B/$f (libarchive missing means\
+        \ fakefsify is not built)\" >&2\n    exit 1\n  fi\ndone\n# A zero-length libvdso.so.elf means meson fell back to the\
+        \ stub,\n# which builds fine but leaves guest processes unable to run.\nVDSO=\"$(find \"$B\" -name 'libvdso.so.elf'\
+        \ -size +0c | head -1)\"\nif [ -z \"$VDSO\" ]; then\n  echo \"error: VDSO is a stub (empty libvdso.so.elf) — ld.lld\
+        \ did not take effect\" >&2\n  exit 1\nfi\necho \"ok: real VDSO built at $VDSO\"\nls -lh \"$VDSO\"\n"
+    - name: Restore pinned rootfs on cache miss
+      uses: actions/download-artifact@v4
+      with:
+        github-token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        run-id: 41269402665
+        name: harness-0.2.1-rc.3-rootfs
+        path: build
+    - name: Verify rootfs
+      run: 'set -euo pipefail
+
+        ls -lh build/root.tar.gz
+
+        shasum -a 256 build/root.tar.gz
+
+        python3 -c "import hashlib,json; from pathlib import Path; expected=json.loads(Path(''app/SessionLifecycle.bundle/manifest.json'').read_text())[''rootfs_sha256''];
+        actual=hashlib.sha256(Path(''build/root.tar.gz'').read_bytes()).hexdigest(); assert actual==expected, ''Harness upgrade
+        rootfs differs from the reviewed image''"
+
+        '
+    - name: Generate Xcode project
+      run: 'set -euo pipefail
+
+        mkdir -p cilogs
+
+        make project 2>&1 | tee cilogs/03-project.log
+
+        '
+    - name: Observe only the real first-launch welcome interaction
+      run: bash scripts/run-harness-ui-diagnostic.sh
+    - name: Upload diagnostic evidence (never IPA acceptance)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: harness-first-launch-diagnostic
+        path: 'cilogs/
+
+          build/TestResults/'
+        retention-days: 7
