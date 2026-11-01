@@ -30,6 +30,11 @@ Web/脚本项目，随后将 iOS 项目交给外部 macOS 构建。
 没有。GitHub Actions 构建 DSH 本身的流程可用，但 App 内从项目提交到远端构建再取回 IPA
 的一键流程尚未接入。实验草稿见 `experimental/cloud-build/`，不能作为已交付功能使用。
 
+## Build 32 更新了什么？
+
+Harness 从 `0.2.0-rc.2` 更新为 `0.2.1-rc.3`，同时适配会话存储、任务 ID、当前工作区导出和引导页。
+镜像迁移保留已有 profile 配置。此版本未安装 Superagent 原型，具体改动见[更新记录](../CHANGELOG.md)。
+
 ## Build 31 修复了什么？
 
 修复 `output.render` 与 Harness 的参数契约不一致：使用 `render(args, value)` 读取工具执行结果，
@@ -46,14 +51,14 @@ Web/脚本项目，随后将 iOS 项目交给外部 macOS 构建。
 ## 后台会一直运行吗？升级会修复全部历史会话吗？
 
 不会承诺后台常驻，iOS 仍可能挂起或终止应用。任务元数据不是进程恢复机制。
-Build 31 保持固定 RootFS，测试覆盖已知 Build 30 模块升级的数据保留边界；
+Build 32 更换为校验过的新 RootFS，测试覆盖旧模块升级以及会话、配置和工作区的迁移保留边界；
 这不意味着所有设备、签名方式及历史会话都已经验收。升级前备份，勿先卸载。
 
 ## 应该从哪里下载？
 
-从 [Build 31 Pre-release](https://github.com/wjc19980523-glitch/dsh-ios-ipa/releases/tag/v1.1.0-build31) 的 Assets 下载 IPA。
-原 Actions artifact 有保留期限，Release 附件不受该期限影响。重新构建仍依赖固定 RootFS
-的可获取性，不能把附件可下载等同于构建依赖永久可用。详见[云构建说明](cloud-build.md)。
+从 [Build 32 Actions artifact](https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973/artifacts/13072198716)
+下载并解压 IPA，需要登录 GitHub；附件于 2026-12-01（UTC）到期。Build 32 尚未发布 GitHub Release。
+重新构建仍依赖固定 RootFS 的可获取性。详见[云构建说明](cloud-build.md)。
 
 ## 仓库里的测试证书是什么？
 

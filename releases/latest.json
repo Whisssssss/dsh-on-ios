@@ -1,41 +1,90 @@
 {
-  "version": "1.1.0",
-  "build": 31,
-  "status": "unsigned-hotfix-test-candidate",
-  "commit": "c91549133e103844e5354be8849bf517f23b1322",
-  "p0_fix_commit": "12e123c4a54260b84de443b1c7b334a7c798bbfa",
-  "ipa_filename": "DSH-1.1.0-build31-unsigned.ipa",
-  "ipa_bytes": 157739414,
-  "ipa_sha256": "e0e73f9f2c94755eec14b71d1dfa32b96bd59fe63c7bbc76bdf820b4ae496685",
-  "workflow_run_id": 39781925031,
-  "artifact_id": 12428440122,
-  "artifact_name": "DSH-Build31-unsigned-hotfix-candidate",
-  "workflow_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/39781925031",
-  "download_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/releases/tag/v1.1.0-build31",
-  "artifact_expires_at": "2026-11-21T13:02:37Z",
-  "rootfs_sha256": "d3e055a6f98cc5d508a502aed88c3fca3c75f7b3217ee257d7e4773337d903a0",
+  "version": "1.1.1",
+  "build": 32,
+  "status": "unsigned-harness-upgrade-test-candidate",
+  "harness_version": "0.2.1-rc.3",
+  "node_version": "22.23.4",
+  "commit": "394aa50c14352fbfc86cec4cf54931093d69c7a7",
+  "source_branch": "upgrade/harness-0.2.1-rc.3",
+  "ipa_filename": "DSH-1.1.1-build32-unsigned.ipa",
+  "ipa_bytes": 201812636,
+  "ipa_sha256": "23e7cea007d63d6942a8945f28b2c28ec960ad17f270848758e6fa277a2ab689",
+  "bundle_identifier": "com.xnuapp.dsh",
+  "minimum_os_version": "16.0",
+  "workflow_run_id": 41276110973,
+  "workflow_run_attempt": 1,
+  "artifact_id": 13072198716,
+  "artifact_name": "DSH-unsigned-ipa",
+  "artifact_zip_bytes": 201843131,
+  "artifact_zip_sha256": "e072b8b8583514a2b217922b6f20a6828e845d7ba15655376017609cd06c1776",
+  "workflow_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973",
+  "download_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973/artifacts/13072198716",
+  "artifact_download_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973/artifacts/13072198716",
+  "artifact_expires_at": "2026-12-01T06:01:49Z",
+  "github_release_published": false,
+  "rootfs_sha256": "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504",
+  "rootfs_provenance": "rootfs/harness-0.2.1-rc.3-image.json",
   "signed": false,
   "stable_release": false,
   "physical_ipad_validation": "pending",
+  "superagent_installed": false,
   "old_session_history_repair": false,
   "in_app_one_click_cloud_build": "unfinished",
   "gates": {
-    "p0_chain": {
+    "simulator_unit": {
+      "passed": 383,
+      "failed": 0,
+      "skipped": 3
+    },
+    "simulator_guest_integration": {
       "passed": 13,
       "failed": 0,
-      "skipped": 0
+      "skipped": 3
     },
-    "native_upgrade": {
-      "passed": 2,
+    "simulator_ui": {
+      "passed": 10,
       "failed": 0,
       "skipped": 0
     },
+    "required_export_and_original_confirmations": {
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0
+    },
+    "required_welcome_upgrade": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "required_wk_input": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "full_guest_verification_job": {
+      "job_id": 124758499026,
+      "conclusion": "success"
+    },
+    "rootfs_checks": {
+      "passed": 62,
+      "failed": 0,
+      "retries": 0
+    },
     "native_device_archive": "passed",
-    "ipa_integrity": "passed"
+    "archive_components": "passed",
+    "downloaded_ipa_integrity": "passed",
+    "archive_resources_verified_in_downloaded_ipa": 14
   },
-  "note": "This identifies the delivered IPA source commit, not later main documentation commits.",
-  "artifact_download_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/39781925031/artifacts/12428440122",
-  "release_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/releases/tag/v1.1.0-build31",
-  "release_tag": "v1.1.0-build31",
-  "ipa_download_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/releases/download/v1.1.0-build31/DSH-1.1.0-build31-unsigned.ipa"
+  "evidence_artifacts": {
+    "simulator_xctest_results": 13071964293,
+    "native_build_logs": 13072880365,
+    "guest_verification_logs": 13072041914
+  },
+  "validation_limits": [
+    "Required gate tests are subsets of the XCTest suites and must not be double-counted.",
+    "Six skipped cases require real-device system authorization or human observation.",
+    "Model round trips used controlled test servers; production model service acceptance is pending.",
+    "Signing, physical iPad operation and saving through a real Files provider remain pending."
+  ],
+  "note": "This records the actual IPA source commit; later documentation and diagnostic-workflow cleanup do not change that binary."
 }

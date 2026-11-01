@@ -1,7 +1,7 @@
-# DSH iOS — 1.1.1（Build 32，验证中）
+# DSH iOS — 1.1.1（Build 32）
 
 本分支将内置 Harness 从 `0.2.0-rc.2` 升至 `0.2.1-rc.3`，使用 Node `22.23.4`。
-Build 32 正在进行原生与 guest 完整验收；下方下载说明仍对应之前交付的 Build 31。
+Build 32 已通过原生、guest 和打包验证；未签名测试候选的下载方式见下方。
 本次不包含 Superagent 原型部署。升级适配和验证状态见 [更新记录](CHANGELOG.md)。
 
 本仓库 **fork 自 [everettjf/dsh-ios](https://github.com/everettjf/dsh-ios)**。
@@ -17,13 +17,15 @@ Agent、会话和 shell 在设备上运行，模型推理请求发送到所配�
 **iOS 安装包由 GitHub Actions 的云端 macOS/Xcode 编译，产物是未签名 IPA，需要自行签名安装。**
 要求 iOS/iPadOS 16 或更高版本。
 
-> **当前状态：** Build 31 是 Hotfix 测试候选，非稳定版。P0 消息链、两项原生升级兼容性、
-> 真机架构归档和 IPA 完整性门禁已通过，最终 iPad 真机功能仍待验收。
+> **当前状态：** Build 32 是未签名测试候选，非稳定版。406 项模拟器测试、62 项 guest 检查通过，
+> 另有 6 项需要真机授权或人工观察的测试跳过。必需导出、升级、输入门禁及真机架构归档、
+> 安装包检查均通过，最终 iPad 真机功能仍待验收。
 > 本版不修复旧会话里已经保存的异常历史消息。
 
 ## 本版改动
 
 - 新安装的 Harness 界面默认中文，已有语言设置继续保留。
+- 适配 Harness `0.2.1-rc.3` 的会话存储、任务 ID 和当前工作区导出；镜像迁移保留已有 profile 配置。
 - 增加会话隔离的任务历史、任务状态（`job_history`、`job_status`）和更明确的 Activity 状态。
 - 增加只读开发预检，明确提示原生 iOS 编译需要 macOS/Xcode。
 - 增加大文件工作区导出 `workspace_export`：分块传输、哈希校验、原生保存确认，
@@ -31,32 +33,32 @@ Agent、会话和 shell 在设备上运行，模型推理请求发送到所配�
 - 改进 Harness 认证、启动、前后台生命周期及诊断，补充相关回归测试。
 - Build 31 修正 `output.render(args, value)` 参数契约，避免把工具参数对象作为文本结果发给模型。
 
-从 1.0.16 到 1.1.0 的变化和验收边界见 [CHANGELOG.md](CHANGELOG.md)。
+各版本变化和验收边界见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 已知限制
 
 - **iPad 本地不能编译原生 iOS App。** 内置 Linux guest 没有 Xcode / iPhoneOS SDK。
-- **App 内一键云端构建尚未完成。** `experimental/cloud-build/` 是未接入草稿，不在 Build 31 资源包中；
+- **App 内一键云端构建尚未完成。** `experimental/cloud-build/` 是未接入草稿，不在 Build 32 资源包中；
   维护者手动运行 GitHub Actions 是另一条流程。
 - iOS 仍可能挂起或终止 App；任务历史不等于后台常驻或进程恢复。
 - 分享仓库不包含模型 Key、Apple 签名账号或证书，也不等于别人下载后即可直接安装。
 
 ## 快速开始
 
-1. 打开 [Build 31 Pre-release](https://github.com/wjc19980523-glitch/dsh-ios-ipa/releases/tag/v1.1.0-build31)，
-   在 Assets 中下载 `DSH-1.1.0-build31-unsigned.ipa`。
-2. 按照[版本记录](releases/1.1.0-build31.json)核对 IPA 的 SHA256。
+1. 下载 [Build 32 Actions artifact](https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973/artifacts/13072198716)
+   （需要登录 GitHub），解压取得 `DSH-1.1.1-build32-unsigned.ipa`。
+2. 按照[版本记录](releases/1.1.1-build32.json)核对 IPA 的 SHA256。
 3. 按[签名安装步骤](docs/install-sign.md)，使用自己的账号和签名工具，连接并信任 iPad，
    签名安装后按系统提示启用开发者模式。
 4. 覆盖升级前备份，保留原 App 和签名身份；首次使用在 DSH 内配置自己的模型 Key。
 
-该下载是未签名 Pre-release 测试候选，最终 iPad 真机功能仍需验收。
-两条工作流和固定 RootFS 的获取限制见[云端构建说明](docs/cloud-build.md)。
+该下载是未签名测试候选，尚未发布 GitHub Release；Actions 附件于 2026-12-01（UTC）到期。
+最终 iPad 真机功能仍需验收。工作流和固定 RootFS 的获取限制见[云端构建说明](docs/cloud-build.md)。
 
 ## 克隆与源码构建
 
 ```bash
-git clone https://github.com/wjc19980523-glitch/dsh-ios-ipa.git
+git clone --branch upgrade/harness-0.2.1-rc.3 https://github.com/wjc19980523-glitch/dsh-ios-ipa.git
 cd dsh-ios-ipa
 ```
 
@@ -64,7 +66,7 @@ cd dsh-ios-ipa
 或按照[本地 Mac 构建步骤](docs/install-sign.md#3-使用自己的-mac-从源码构建)操作。
 仓库不提供开发者证书或账号凭据，自己的签名 profile 必须与启用的 entitlement 匹配。
 
-`docs/` 中原有截图与导览属于上游参考资料，不作为 Build 31 的真机验收证据。
+`docs/` 中原有截图与导览属于上游参考资料，不作为 Build 32 的真机验收证据。
 
 ## 工作原理
 
@@ -120,8 +122,9 @@ make test-device        # 再加 UI 测试（需先在 iPad 设置 ▸ 开发者
 | `DSHTests`（XCTest，宿主在 app 内） | 端口分配、日志环、就绪探测、监督器状态机（假 launcher + 本地 HTTP 服务器）；host bridge 的认证/能力开关/限流；guest 集成：真实服务响应、`dsh-selftest`、node/dsh 版本、镜像簿记、**用 app 内 mock 模型跑完整一轮 agent 对话并通过 bridge 调用 `device_info`** | 模拟器 / 真机 |
 | `DSHUITests`（XCUITest） | 启动到 DeepSeek Harness 界面、状态栏端口、服务日志页、终端页、横屏布局 | 模拟器 / 真机 |
 
-Build 31 已通过的 Hotfix 门禁为：13 项消息链、2 项原生升级测试、未签名真机归档和 IPA 完整性。
-未变化的宿主测试复用已有证据，不代表重新完成全量或真机验收。详见[云构建证据](docs/cloud-build.md)。
+Build 32 通过 383 项单元测试、13 项 guest 集成测试、10 项界面测试，以及完整 guest 验证流程
+（其中 RootFS 为 62 项检查）。另有 6 项需真机授权或人工观察的测试跳过；必需导出、升级和输入
+门禁无跳过。未签名真机架构归档与安装包检查通过，真机功能仍待验收。详见[云构建证据](docs/cloud-build.md)。
 
 ## 目录结构
 

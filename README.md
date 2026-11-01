@@ -1,8 +1,8 @@
-# DSH iOS — 1.1.1 (Build 32, in validation)
+# DSH iOS — 1.1.1 (Build 32)
 
 This branch upgrades the embedded Harness from `0.2.0-rc.2` to `0.2.1-rc.3`
-with Node `22.23.4`. Build 32 is undergoing native and guest verification;
-the download instructions below still refer to the previously delivered Build 31.
+with Node `22.23.4`. Build 32 passed native, guest and packaging verification;
+the unsigned test candidate is available from the build linked below.
 This upgrade does not install the Superagent prototype. See the new entry in
 [CHANGELOG.md](CHANGELOG.md) for compatibility changes and validation status.
 
@@ -19,13 +19,16 @@ The Agent, shell and sessions run on the device; model inference uses the config
 **The iOS app is compiled on cloud macOS/Xcode through GitHub Actions. The IPA is unsigned;
 you must sign it yourself before installation.** iOS/iPadOS 16 or later is required.
 
-> **Status:** Build 31 is a Hotfix test candidate, not a stable release. Its P0 message-chain
-> tests, two native upgrade tests, device archive and IPA integrity gates passed.
+> **Status:** Build 32 is an unsigned test candidate, not a stable release. All 406 executed
+> simulator tests and 62 guest checks passed; six manual-device cases remain skipped.
+> Required export/upgrade/input gates, device archive and package checks passed.
 > Physical iPad validation remains pending. Old malformed session history is not repaired.
 
 ## Changes in this fork
 
 - Chinese UI by default on a fresh guest configuration; existing language preferences are preserved.
+- Harness `0.2.1-rc.3` compatibility for session persistence, task IDs and current workspace export;
+  image migration preserves existing profile settings.
 - Session-scoped task history and status (`job_history`, `job_status`) and clearer Activity states.
 - Read-only development preflight, including a clear indication that native iOS builds require macOS/Xcode.
 - Large workspace file export (`workspace_export`): chunked transfer, hash verification and native save confirmation,
@@ -33,32 +36,33 @@ you must sign it yourself before installation.** iOS/iPadOS 16 or later is requi
 - Harness authentication, startup/lifecycle handling, diagnostics and related regression coverage.
 - Build 31 fixes the `output.render(args, value)` contract so tool arguments are not emitted as text results.
 
-See [CHANGELOG.md](CHANGELOG.md) for the 1.0.16 → 1.1.0 transition and validation boundaries.
+See [CHANGELOG.md](CHANGELOG.md) for version history and validation boundaries.
 
 ## Known limitations
 
 - **The iPad Linux guest cannot compile a native iOS app locally.** It has no Xcode or iPhoneOS SDK.
 - **In-app one-click cloud builds are unfinished.** The modules under `experimental/cloud-build/` are unintegrated drafts,
-  excluded from Build 31. Maintainer-driven GitHub Actions builds are a separate capability.
+  excluded from Build 32. Maintainer-driven GitHub Actions builds are a separate capability.
 - iOS may suspend or terminate the app; task history does not guarantee background execution or process recovery.
 - Sharing the repository does not supply model credentials, Apple signing credentials or an immediately installable IPA.
 
 ## Quick start
 
-1. Open the [Build 31 Pre-release](https://github.com/wjc19980523-glitch/dsh-ios-ipa/releases/tag/v1.1.0-build31)
-   and download `DSH-1.1.0-build31-unsigned.ipa` from Assets.
-2. Verify the IPA SHA256 against [the release metadata](releases/1.1.0-build31.json).
+1. Download the [Build 32 Actions artifact](https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973/artifacts/13072198716)
+   (GitHub sign-in required) and extract `DSH-1.1.1-build32-unsigned.ipa` from the ZIP.
+2. Verify the IPA SHA256 against [the version metadata](releases/1.1.1-build32.json).
 3. Follow [the signing and installation steps](docs/install-sign.md): use your own signing account/tool,
    connect and trust the device, sign/install, then enable Developer Mode if required.
 4. For an upgrade, back up data and preserve the existing app and signing identity. Configure your own model key in DSH.
 
-This is an unsigned Pre-release test candidate; physical iPad validation remains required.
-See [cloud-build.md](docs/cloud-build.md) for the two workflows and fixed RootFS availability constraints.
+This unsigned test candidate has not been published as a GitHub Release. The Actions download
+expires on December 1, 2026 (UTC). Physical iPad validation remains required.
+See [cloud-build.md](docs/cloud-build.md) for workflows and fixed RootFS availability constraints.
 
 ## Clone and build from source
 
 ```bash
-git clone https://github.com/wjc19980523-glitch/dsh-ios-ipa.git
+git clone --branch upgrade/harness-0.2.1-rc.3 https://github.com/wjc19980523-glitch/dsh-ios-ipa.git
 cd dsh-ios-ipa
 ```
 
@@ -67,7 +71,7 @@ Use the cloud workflow or follow [the local Mac build steps](docs/install-sign.m
 The checked-in signing settings contain no developer certificate or account credentials;
 your local signing profile must match the enabled entitlements.
 
-The original screenshots and walkthrough in `docs/` are upstream reference material, not Build 31 acceptance evidence.
+The original screenshots and walkthrough in `docs/` are upstream reference material, not Build 32 acceptance evidence.
 
 ## How it works
 
@@ -130,9 +134,10 @@ make test-device        # + UI tests on the iPad (enable Settings ▸ Developer 
 | `DSHTests` (XCTest, hosted in the app) | port allocator, log ring, readiness probe, harness state machine (fake launcher + local HTTP server); host bridge auth/gating/limits; the confirmation gate (background → refuse, no stacking, always answers); every capability route (refused when switched off, refused before the framework is touched, validated before the user is asked, empty Health answers always explain themselves); guest integration: real server answers, `dsh-selftest`, node/dsh versions, root-image bookkeeping, **whole agent turns calling `device_info` and `health_query` through the bridge against an in-app mock model** | simulator / device |
 | `DSHUITests` (XCUITest) | app boots to the DeepSeek Harness UI, port in the bar, server-log sheet, terminal sheet, landscape layout, the Capabilities screen's switches | simulator / device |
 
-For Build 31, the verified Hotfix gates are 13 message-chain tests, two native upgrade tests,
-unsigned device compilation and IPA integrity. Unchanged host regression evidence was reused.
-This does not claim a fresh full-suite or physical-device pass. See [cloud build evidence](docs/cloud-build.md).
+Build 32 passed 383 unit tests, 13 guest-integration tests and 10 UI tests, plus the full guest
+verification job (62 rootfs checks). Six cases requiring manual device authorization or observation
+were skipped; required export, upgrade and input gates had no skips. Unsigned device compilation
+and package checks passed. Physical-device acceptance remains pending. See [cloud build evidence](docs/cloud-build.md).
 
 ## Project layout
 
