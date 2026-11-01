@@ -9,7 +9,11 @@
 
 #import <XCTest/XCTest.h>
 
-static const NSTimeInterval kBootTimeout = 300;   // first launch imports the rootfs
+// Match DSHHarness's existing startup allowance. In run 41271221810 the
+// first cold launch needed 282.6 seconds; the old 300-second UI-only ceiling
+// could kill a still-starting guest before its production supervisor decided.
+// The status and overlay share this deadline; success still requires readiness.
+static const NSTimeInterval kBootTimeout = 600;
 
 @interface DSHLaunchUITests : XCTestCase
 @property (nonatomic) XCUIApplication *app;
@@ -217,6 +221,7 @@ static const NSTimeInterval kBootTimeout = 300;   // first launch imports the ro
 - (void)waitForHarnessReady {
     // Passive readiness queries do not invoke XCTest interruption monitors.
     [self declinePendingSystemPermissionAlerts];
+    NSTimeInterval started = NSProcessInfo.processInfo.systemUptime;
     XCUIElement *overlay = self.app.staticTexts[@"dsh.overlay.message"];
     XCUIElement *dot = self.app.otherElements[@"dsh.statusdot"];
     NSPredicate *ready = [NSPredicate predicateWithFormat:@"exists == YES AND value == 'ready'"];
@@ -224,9 +229,11 @@ static const NSTimeInterval kBootTimeout = 300;   // first launch imports the ro
     [self waitForExpectations:@[server] timeout:kBootTimeout];
     NSPredicate *gone = [NSPredicate predicateWithFormat:@"exists == NO OR hittable == NO"];
     XCTestExpectation *e = [self expectationForPredicate:gone evaluatedWithObject:overlay handler:nil];
-    [self waitForExpectations:@[e] timeout:kBootTimeout];
+    [self waitForExpectations:@[e] timeout:MAX(0, kBootTimeout - (NSProcessInfo.processInfo.systemUptime - started))];
     XCTAssertTrue(dot.exists, @"the native status indicator must remain present");
     XCTAssertEqualObjects(dot.value, @"ready", @"status dot should report ready");
+    NSLog(@"[ui-startup] service and web view ready after %.3f seconds",
+          NSProcessInfo.processInfo.systemUptime - started);
     [self completeGuestFirstLaunchOnboardingIfPresent];
 }
 
