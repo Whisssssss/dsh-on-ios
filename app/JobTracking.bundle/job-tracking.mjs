@@ -1,4 +1,4 @@
-import { JobLedger, jobOutcome, toolOutcome, scopeID } from './job-ledger.mjs';
+import { JobLedger, jobOutcome, toolOutcome, scopeID, isJobID } from './job-ledger.mjs';
 import { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { developmentPreflight } from './development-tools.mjs';
@@ -26,7 +26,7 @@ export function installJobTracking(ctx, defineTool, options = {}) {
   jobs.events.subscribe({ owners: 'scope' }, event => {
     const id = event.job?.id ?? event.id, owner = event.job?.owner ?? event.owner;
     const total = event.job?.output?.total ?? event.total;
-    if (!/^(bash|terminal|subagent)-[1-9][0-9]{0,15}$/.test(id ?? '') ||
+    if (!isJobID(id) ||
         !scopeID(owner) || !Number.isSafeInteger(total) || total < 0) return;
     const key = `${scopeID(owner)}:${id}`, prior = progress.get(key);
     progress.set(key, { total, lastOutputAt: total > (prior?.total ?? 0) ? ledger.now() : prior?.lastOutputAt ?? null });
@@ -135,7 +135,7 @@ export function installTaskActivity(ctx, push) {
   ctx.get('jobs')?.events.subscribe({ owners: 'scope' }, event => {
     if (!['registered', 'stopping', 'settled'].includes(event.type)) return;
     const job = event.job;
-    if (!/^(bash|terminal|subagent)-[1-9][0-9]{0,15}$/.test(job?.id) || !scopeID(job.owner)) return;
+    if (!isJobID(job?.id) || !scopeID(job.owner)) return;
     const state = jobOutcome(job, event.cause).state;
     emit({ id: `job:${process.pid}:${job.id}`, name: 'background_job',
       outcome: ({ running: 'started', stopping: 'started', succeeded: 'ok', failed: 'error',

@@ -8,8 +8,8 @@ import importlib.util
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = ROOT / 'app/SessionLifecycle.bundle'
 TARGET = '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js'
-ORIGINAL_SHA = '0845707017acc2b4a8a75eab2244fa3fd88587b8094ab32014321dce7ca1e31b'
-ROOTFS_SHA = 'd3e055a6f98cc5d508a502aed88c3fca3c75f7b3217ee257d7e4773337d903a0'
+ORIGINAL_SHA = '973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984'
+ROOTFS_SHA = '8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504'
 
 
 def build(source):
@@ -148,16 +148,17 @@ def build(source):
 \t\tthis.dshUncertain = false;
 \t}
 };''')
-    replace('\ttracker = new JsonlBackendTracker(this.name);',
-            '\ttracker = new JsonlBackendTracker(this.name);\n\tdshLifecycleAdmission = new SessionLifecycleAdmission();')
-    replace('''\t\tthis.tracker.install(ctx);
-\t}''', '''\t\tthis.tracker.install(ctx);
-\t\tthis.tracker.dshLifecycleBackend = this;
-\t\tregisterSessionBackend(this);
-\t}''')
-    replace('''\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${this.name} dispose failed`);''',
-            '''\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${this.name} dispose failed`);
-\t\t\tunregisterSessionBackend(this.dshLifecycleBackend);''')
+    # 0.2.1 creates the tracker in apply() and retains it until consumers have
+    # unloaded. Preserve that ownership/order and unregister only after drain.
+    replace('\ttracker;\n\t/** Backend label',
+            '\ttracker;\n\tdshLifecycleAdmission = new SessionLifecycleAdmission();\n\t/** Backend label')
+    replace('\t\tthis.assertUsableRoot();\n\t}',
+            '\t\tthis.assertUsableRoot();\n\t\tthis.tracker.dshLifecycleBackend = this;\n\t\tregisterSessionBackend(this);\n\t}')
+    replace('\t\tconst { writers, openHandles, name } = this;',
+            '\t\tconst { writers, openHandles, name } = this;\n\t\tconst dshTracker = this;')
+    replace('''\t\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${name} dispose failed`);''',
+            '''\t\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${name} dispose failed`);
+\t\t\t\tunregisterSessionBackend(dshTracker.dshLifecycleBackend);''')
     replace('''\tasync create(header, options) {
 \t\toptions?.signal''', '''\tasync create(header, options) {
 \t\treturn this.dshLifecycleAdmission.run(() => this.dshCreateAdmitted(header, options));

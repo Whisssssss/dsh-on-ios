@@ -9,7 +9,7 @@ import { syncBuiltinESMExports } from 'node:module';
 import { createServer } from 'node:http';
 import { Context } from '/usr/local/lib/node_modules/@deepseek-ai/cordis/lib/index.js';
 import SessionStore from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session/lib/index.js';
-import JsonlPersistence from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js';
+import * as JsonlPersistence from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js';
 import { SessionPersistenceCorruptionError } from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence/lib/index.js';
 import { tryLockExclusive } from '/usr/local/lib/node_modules/@deepseek-ai/node-addon-system/lib/flock.js';
 import { invalidatePreparedCheckpoint, hasPreparedCheckpoint } from '/usr/local/share/dsh/session-checkpoint-core.mjs';
@@ -20,9 +20,16 @@ let passed = 0;
 const hash = value => createHash('sha256').update(value).digest('hex');
 const turn = () => new Promise(resolve => setImmediate(resolve));
 async function test(name, operation) { await operation(); passed += 1; console.log('PASS ' + name); }
+async function mountPersistence(ctx, config) {
+  const plugin = ctx.plugin(JsonlPersistence, config);
+  await plugin.await();
+  const backend = ctx.get('sessionPersistence');
+  assert(backend, 'the real provider must become ready before testing it');
+  return backend;
+}
 async function fixture({ malformedTitle = false } = {}) {
   const ctx = new Context(); const sessions = new SessionStore(ctx);
-  const backend = new JsonlPersistence(ctx, { root: root + '/sessions', compression: 'none' });
+  const backend = await mountPersistence(ctx, { root: root + '/sessions', compression: 'none' });
   const session = sessions.prepare('lease-test-' + randomBytes(6).toString('hex'), { meta: { cwd: root + '/workspace' } });
   const handle = await backend.create(session.header);
   // Use a valid current-format manual title. Keeping an explicitly malformed
@@ -42,7 +49,7 @@ async function fourWriterFixture(compression = 'none') {
   const configuration = { root: root + '/four-writers-' + compression };
   // Exercise the actual default by omitting the option for the zstd branch.
   if (compression === 'none') configuration.compression = 'none';
-  const backend = new JsonlPersistence(ctx, configuration); assert.equal(backend.compression, compression);
+  const backend = await mountPersistence(ctx, configuration); assert.equal(backend.compression, compression);
   const writers = [];
   for (const bytes of [4096, 16384, 65536, 131072]) {
     const session = sessions.prepare('four-writer-' + randomBytes(6).toString('hex'), { meta: { cwd: root + '/workspace' } });
@@ -191,7 +198,7 @@ try {
       const { backend, handle, session, log, lock } = await fixture(); const original = await readFile(log);
       await backend.dshLifecycleSuspend();
       if (mutation === 'foreign-append') {
-        const other = new JsonlPersistence(new Context(), { root: root + '/sessions', compression: 'none' });
+        const other = await mountPersistence(new Context(), { root: root + '/sessions', compression: 'none' });
         const writer = await other.open(handle.id, 'write');
         const foreignEvent = structuredClone((await writer.read()).events[0]);
         foreignEvent.seq = 1; foreignEvent.data.title = 'foreign append';

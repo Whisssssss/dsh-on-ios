@@ -50,5 +50,5 @@ set -e
 # A simultaneous tee failure must not hide the supervised command's exit code.
 if [ "${PIPELINE_STATUS[0]}" -ne 0 ]; then exit "${PIPELINE_STATUS[0]}"; fi
 if [ "${PIPELINE_STATUS[1]}" -ne 0 ]; then exit "${PIPELINE_STATUS[1]}"; fi
-python3 "$HERE/check-job-tracking-result.py" --expected 73 \
+python3 "$HERE/check-job-tracking-result.py" --expected 74 \
   --result "$DIAGNOSTICS/result.json" --log "$DIAGNOSTICS/suite.log"

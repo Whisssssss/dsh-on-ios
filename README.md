@@ -1,4 +1,10 @@
-# DSH iOS — 1.1.0 (Build 31)
+# DSH iOS — 1.1.1 (Build 32, in validation)
+
+This branch upgrades the embedded Harness from `0.2.0-rc.2` to `0.2.1-rc.3`
+with Node `22.23.4`. Build 32 is undergoing native and guest verification;
+the download instructions below still refer to the previously delivered Build 31.
+This upgrade does not install the Superagent prototype. See the new entry in
+[CHANGELOG.md](CHANGELOG.md) for compatibility changes and validation status.
 
 This repository is a **fork of [everettjf/dsh-ios](https://github.com/everettjf/dsh-ios)**.
 Thank you to Everett and the upstream contributors for the original iOS integration,

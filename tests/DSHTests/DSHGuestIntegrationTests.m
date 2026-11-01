@@ -435,7 +435,7 @@
     } completion:^(ISHShellExecutionResult *result) {
         XCTAssertEqual(result.exitCode, 0);
         XCTAssertTrue([out containsString:@"v22."], @"node 22 expected: %@", out);
-        XCTAssertTrue([out containsString:@"0.2.0-rc.2"], @"bundled dsh 0.2.0-rc.2 expected: %@", out);
+        XCTAssertTrue([out containsString:@"0.2.1-rc.3"], @"bundled dsh 0.2.1-rc.3 expected: %@", out);
         [done fulfill];
     }];
     [self waitForExpectations:@[done] timeout:120];

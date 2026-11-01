@@ -8,7 +8,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { syncBuiltinESMExports } from 'node:module';
 import { Context } from '/usr/local/lib/node_modules/@deepseek-ai/cordis/lib/index.js';
 import SessionStore from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session/lib/index.js';
-import JsonlPersistence from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js';
+import * as JsonlPersistence from '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js';
 import { tryLockExclusive } from '/usr/local/lib/node_modules/@deepseek-ai/node-addon-system/lib/flock.js';
 import { invalidatePreparedCheckpoint, hasPreparedCheckpoint } from '/usr/local/share/dsh/session-checkpoint-core.mjs';
 
@@ -24,7 +24,10 @@ async function makeBackend() {
   const ctx = new Context(), sessions = new SessionStore(ctx);
   const options = { root: join(root, 'case-' + fixtureCount++) };
   if (encoding === 'none') options.compression = 'none';
-  const backend = new JsonlPersistence(ctx, options); assert.equal(backend.compression, encoding);
+  const plugin = ctx.plugin(JsonlPersistence, options);
+  await plugin.await();
+  const backend = ctx.get('sessionPersistence'); assert(backend);
+  assert.equal(backend.compression, encoding);
   return { backend, sessions };
 }
 async function makeWriter(environment, bytes = 64) {

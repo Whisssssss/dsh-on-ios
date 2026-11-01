@@ -219,6 +219,7 @@ tg = tests_group.new_group('DSHTests', 'DSHTests')
 Dir[(ROOT + 'tests/DSHTests/*.m').to_s].sort.each { |f| tests.source_build_phase.add_file_reference(tg.new_file(File.basename(f)), true) }
 Dir[(ROOT + 'tests/DSHTests/*.h').to_s].sort.each { |f| tg.new_file(File.basename(f)) }
 tg.new_file('Info.plist')
+tests.resources_build_phase.add_file_reference(tg.new_file('onboarding-build29-original.js'), true)
 tests.build_configuration_list.build_configurations.each do |bc|
   bc.build_settings.clear
   bc.build_settings.merge!(common_test_settings, {

@@ -59,6 +59,22 @@ test('metadata persists actual terminal status and strips every command/output/p
   const list = await ledger.list('session-A'); assert.equal(list.records[0].state, 'succeeded');
   if (process.platform !== 'win32') assert.equal((await stat(ledger.path)).mode & 0o777, 0o600);
 });
+
+test('new hexadecimal job IDs persist alongside legacy IDs and reject malformed identifiers', async t => {
+  const { home, ledger } = await fixture(t);
+  const ids = ['bash-1', 'bash-7fa09b1234564abc', 'terminal-0123456789abcdef', 'subagent-abcdef1234567890'];
+  for (const id of ids) ledger.observe(event('completed', 'exit code: 0', 'session-A', id));
+  for (const id of ['bash-abc', 'bash-ABCDEF1234567890', 'bash-abcdef12345678901', '../bash-1', 'bash-0'])
+    ledger.observe(event('completed', 'exit code: 0', 'session-A', id));
+  await ledger.flush();
+  const reopened = new JobLedger(home, { runID: RUN2 });
+  await reopened.ready;
+  const records = (await reopened.list('session-A')).records;
+  assert.deepEqual(records.map(row => row.job_id).sort(), ids.sort());
+  assert(records.every(row => row.state === 'succeeded'));
+  assert.deepEqual((await reopened.list('session-B')).records, []);
+  await reopened.flush();
+});
 test('finished tasks remain queryable; reading never consumes status or re-executes', async t => {
   const { ledger } = await fixture(t); ledger.observe(event('completed', 'exit code: 3'));
   const id = `${RUN1}:bash-1`;

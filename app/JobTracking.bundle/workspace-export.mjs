@@ -45,7 +45,8 @@ export async function openWorkspaceFile(args, exec, options = {}) {
   const io = options.io ?? { lstat, realpath, open };
   const environment = options.environment ?? process.env;
   const root = environment.DSH_WORKSPACE ?? '/root/workspace';
-  const workspace = exec?.agent?.session?.header?.cwd;
+  const session = exec?.agent?.session;
+  const workspace = options.getWorkingDirectory ? options.getWorkingDirectory(session) : session?.header?.cwd;
   const path = args?.path;
   if (![root, workspace, path].every(value => typeof value === 'string' && isAbsolute(value) &&
       !value.includes('\\') && !/[\p{Cc}\p{Cf}]/u.test(value) && resolve(value) === value &&
@@ -326,7 +327,14 @@ export function installWorkspaceExport(ctx, defineTool, options = {}) {
     description: 'Save an existing ordinary file from this session workspace to iOS Files. Supply only its absolute path and optional name. Trusted code streams binary chunks (up to 512 MiB), verifies SHA256, asks the user to confirm its source/name/size and opens the native save picker. Never read or send file Base64. A cancelled, interrupted or merely displayed picker is not saved. Repeat an interrupted call with the same path/name to resume; do not reset data. Sensitive paths, links and files outside the authorized current workspace are refused. The user may disable this capability.',
     parameters: { path: { type: 'string', required: true, description: 'Absolute existing file path inside the current authorized session workspace.' }, name: { type: 'string', description: 'Optional single file name for iOS Files.' } },
     output,
-    async execute(args, exec) { return JSON.stringify(await exportWorkspace(args, exec, options)); },
+    async execute(args, exec) {
+      // Harness 0.2.1 keeps directory changes in a session projection; the
+      // immutable header describes only the initial directory.
+      return JSON.stringify(await exportWorkspace(args, exec, {
+        ...options,
+        getWorkingDirectory: session => ctx.get?.('workingDirectory')?.get?.(session) ?? session?.header?.cwd,
+      }));
+    },
     presentCall: args => ({ card: 'generic', title: `Save workspace file ${safeName(args.name ?? '') ? args.name : ''}`.trim(), kind: 'other' }),
   }));
 }

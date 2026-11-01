@@ -13,9 +13,9 @@ static NSString *const DSHWebFetchPackagePath = @"/usr/local/lib/node_modules/@d
 static NSString *const DSHJobTrackingPackagePath = @"/usr/local/lib/dsh-plugins/dsh-host-bridge/index.js";
 static NSString *const DSHOnboardingPackagePath = @"/usr/local/lib/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js";
 static NSString *const DSHOnboardingOriginalSource = @"onboarding-client-original.js";
-static NSString *const DSHOnboardingOriginalSHA256 = @"7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa";
+static NSString *const DSHOnboardingOriginalSHA256 = @"190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28";
 static NSString *const DSHOnboardingPreviousSHA256 = @"b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5";
-static NSUInteger const DSHOnboardingOriginalSize = 186641;
+static NSUInteger const DSHOnboardingOriginalSize = 211258;
 static NSUInteger const DSHSessionMaximumFileSize = 4 * 1024 * 1024;
 
 @implementation DSHSessionLifecycleFileInfo

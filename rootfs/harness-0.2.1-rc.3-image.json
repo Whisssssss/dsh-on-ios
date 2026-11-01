@@ -1,0 +1,12 @@
+{
+  "harness_version": "0.2.1-rc.3",
+  "node_version": "22.23.4",
+  "source_commit": "9e19a0109425bf511415c000266df048e09c02ef",
+  "workflow_run_id": 41269402665,
+  "artifact_id": 13068767882,
+  "artifact_name": "harness-0.2.1-rc.3-rootfs",
+  "artifact_bytes": 201769860,
+  "artifact_sha256": "7eabf30e6a976cce1a8816d14b91af8adeb3472142980a34259be7690a7f1783",
+  "rootfs_bytes": 201769469,
+  "rootfs_sha256": "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504"
+}

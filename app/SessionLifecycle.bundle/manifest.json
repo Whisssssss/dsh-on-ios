@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "rootfs_sha256": "d3e055a6f98cc5d508a502aed88c3fca3c75f7b3217ee257d7e4773337d903a0",
+  "rootfs_sha256": "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504",
   "patches": [
     {
       "target": "/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js",
-      "original_sha256": "0845707017acc2b4a8a75eab2244fa3fd88587b8094ab32014321dce7ca1e31b",
-      "patched_sha256": "857c962c14847b3b1dbb9e3abc85ed9c12b8ee829ec808a7b3774ed7ee33c386",
+      "original_sha256": "973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984",
+      "patched_sha256": "bf4e690bba2cdc259a01330bd185d3c1dba19e97c0ef412c9a05e1cde5bf4992",
       "replacements": [
         {
           "find": "import z from \"@deepseek-ai/schemastery\";",
@@ -63,18 +63,23 @@
           "count": 1
         },
         {
-          "find": "\ttracker = new JsonlBackendTracker(this.name);",
-          "replace": "\ttracker = new JsonlBackendTracker(this.name);\n\tdshLifecycleAdmission = new SessionLifecycleAdmission();",
+          "find": "\ttracker;\n\t/** Backend label",
+          "replace": "\ttracker;\n\tdshLifecycleAdmission = new SessionLifecycleAdmission();\n\t/** Backend label",
           "count": 1
         },
         {
-          "find": "\t\tthis.tracker.install(ctx);\n\t}",
-          "replace": "\t\tthis.tracker.install(ctx);\n\t\tthis.tracker.dshLifecycleBackend = this;\n\t\tregisterSessionBackend(this);\n\t}",
+          "find": "\t\tthis.assertUsableRoot();\n\t}",
+          "replace": "\t\tthis.assertUsableRoot();\n\t\tthis.tracker.dshLifecycleBackend = this;\n\t\tregisterSessionBackend(this);\n\t}",
           "count": 1
         },
         {
-          "find": "\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${this.name} dispose failed`);",
-          "replace": "\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${this.name} dispose failed`);\n\t\t\tunregisterSessionBackend(this.dshLifecycleBackend);",
+          "find": "\t\tconst { writers, openHandles, name } = this;",
+          "replace": "\t\tconst { writers, openHandles, name } = this;\n\t\tconst dshTracker = this;",
+          "count": 1
+        },
+        {
+          "find": "\t\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${name} dispose failed`);",
+          "replace": "\t\t\t\tif (errors.length > 0) throw new AggregateError(errors, `${name} dispose failed`);\n\t\t\t\tunregisterSessionBackend(dshTracker.dshLifecycleBackend);",
           "count": 1
         },
         {
@@ -243,7 +248,7 @@
       ],
       "original_source": {
         "source": "session-backend-original.js",
-        "sha256": "0845707017acc2b4a8a75eab2244fa3fd88587b8094ab32014321dce7ca1e31b"
+        "sha256": "973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984"
       }
     }
   ],

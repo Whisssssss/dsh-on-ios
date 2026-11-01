@@ -45,6 +45,12 @@ async function fixture(t, { refuse = false, track = true, preparationDelay = 0, 
   new SystemPrompt(ctx, {});
   ctx.provide('tools', { register(tool) { definitions.set(tool.name, tool); return () => definitions.delete(tool.name); } });
   ctx.provide('shellEnv', { collect: () => ({}) });
+  // Bash 0.2.1 resolves cwd through this service. This shell-focused fixture
+  // keeps its fixed directories but still checks cancellation and real paths.
+  ctx.provide('workingDirectory', { async ensure(owner, signal) {
+    signal?.throwIfAborted();
+    return realpath(owner.session.header.cwd);
+  } });
   const shell = {
     resolve: request => ({ ...request, timeoutMs: Math.min(request.timeoutMs ?? 25, 600000), onExpiry: request.onExpiry ?? 'kill' }),
     execute: async spec => {

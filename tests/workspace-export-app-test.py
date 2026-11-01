@@ -66,7 +66,7 @@ class ArchiveGateTests(unittest.TestCase):
                 dest = cls.original / bundle / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes(data)
-        info = {"CFBundleIdentifier": GATE.APP_ID, "CFBundleVersion": "31", "CFBundleShortVersionString": "1.1.0",
+        info = {"CFBundleIdentifier": GATE.APP_ID, "CFBundleVersion": "32", "CFBundleShortVersionString": "1.1.1",
                 "CFBundleExecutable": "DSH", "CFBundlePackageType": "APPL", "MinimumOSVersion": "16.0"}
         (cls.original / "Info.plist").write_bytes(plistlib.dumps(info))
         (cls.original / "DSH").write_bytes(macho())
@@ -117,15 +117,15 @@ class ArchiveGateTests(unittest.TestCase):
         self.write_onboarding_manifest(json.dumps(manifest).encode())
 
     def test_actual_production_pins_and_fourteen_resource_contract(self):
-        self.assertEqual(PINNED_ROOT_BYTES, 157427502)
-        self.assertEqual(PINNED_ROOT_SHA, "d3e055a6f98cc5d508a502aed88c3fca3c75f7b3217ee257d7e4773337d903a0")
+        self.assertEqual(PINNED_ROOT_BYTES, 201769469)
+        self.assertEqual(PINNED_ROOT_SHA, "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504")
         self.assertEqual(sum(map(len, GATE.BUNDLES.values())), 14)
-        self.assertEqual(GATE.ONBOARDING_ORIGINAL_BYTES, 186641)
-        self.assertEqual(GATE.ONBOARDING_ORIGINAL_SHA256, "7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa")
+        self.assertEqual(GATE.ONBOARDING_ORIGINAL_BYTES, 211258)
+        self.assertEqual(GATE.ONBOARDING_ORIGINAL_SHA256, "190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28")
         self.assertEqual(GATE.ONBOARDING_BUILD29_BYTES, 191089)
         self.assertEqual(GATE.ONBOARDING_BUILD29_SHA256, "b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5")
-        self.assertEqual(GATE.ONBOARDING_PATCHED_BYTES, 200500)
-        self.assertEqual(GATE.ONBOARDING_PATCHED_SHA256, "d4f3634c7483237ad9627b0a4b06f6b5b04d538a5d96b304841afe09078bf9d5")
+        self.assertEqual(GATE.ONBOARDING_PATCHED_BYTES, 225117)
+        self.assertEqual(GATE.ONBOARDING_PATCHED_SHA256, "db851f8ba82bab99b98ec3c07555d1808535eb44ef83471fbd5130ef60e0bdb8")
 
     def test_valid_synthetic_app_contains_both_native_classes_and_all_resources(self):
         result = self.check()
@@ -350,7 +350,7 @@ class ArchiveGateTests(unittest.TestCase):
             replacement = manifest["patches"][0]["replacements"][0]
             replacement["replace"] += " "
         self.edit_onboarding_manifest(edit)
-        with self.assertRaisesRegex(GATE.Rejected, "do not preserve the Build 29 API patch"): self.check()
+        with self.assertRaisesRegex(GATE.Rejected, "first three touch patches differ"): self.check()
 
     def test_onboarding_replayed_final_client_is_pinned(self):
         def edit(manifest):
@@ -364,8 +364,7 @@ class ArchiveGateTests(unittest.TestCase):
         with self.assertRaisesRegex(GATE.Rejected, "pinned identity differs"): self.check()
 
     def permissive_catch_candidate(self):
-        # Exact prior 11b2c31 candidate, kept as an adverse resource fixture.
-        # Do not require repository history in the shallow macOS CI checkout.
+        # Recreate the prior permissive-catch defect on the new pinned source.
         manifest = json.loads((self.app / "OnboardingInteraction.bundle/manifest.json").read_bytes())
         patch = manifest["patches"][0]
         patch["replacements"][4]["replace"] = (
@@ -381,8 +380,8 @@ class ArchiveGateTests(unittest.TestCase):
             self.assertEqual(text.count(replacement["find"]), replacement["count"])
             text = text.replace(replacement["find"], replacement["replace"])
         data = text.encode("utf-8")
-        self.assertEqual(len(data), 200391)
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "08bca6d6bcc92bc16fde2daadb2d50469c5573d7f90180e74e147eb9fe5e9c1c")
+        self.assertEqual(len(data), 225008)
+        self.assertNotEqual(hashlib.sha256(data).hexdigest(), GATE.ONBOARDING_PATCHED_SHA256)
         return manifest
 
     def test_prior_permissive_catch_candidate_rejected_even_when_source_agrees(self):

@@ -18,15 +18,15 @@ const actualPatch=actualManifest.patches[0];
 assert.equal(actualPatch.replacements.length,5);
 assert.equal(actualPatch.original_source.source,'onboarding-client-original.js');
 const original=readFileSync(resolve(root,'app/OnboardingInteraction.bundle',actualPatch.original_source.source));
-assert.equal(original.length,186641);
-assert.equal(sha(original),'7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa');
+assert.equal(original.length,211258);
+assert.equal(sha(original),'190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28');
 function apply(text,replacements){
   for(const r of replacements){assert.equal(r.count,1);assert.equal(text.split(r.find).length-1,1);text=text.replace(r.find,r.replace);}
   return text;
 }
 const patched=apply(original.toString(),actualPatch.replacements);
 assert.equal(sha(Buffer.from(patched)),actualPatch.patched_sha256);
-assert.equal(actualPatch.patched_sha256,'d4f3634c7483237ad9627b0a4b06f6b5b04d538a5d96b304841afe09078bf9d5');
+assert.equal(actualPatch.patched_sha256,'db851f8ba82bab99b98ec3c07555d1808535eb44ef83471fbd5130ef60e0bdb8');
 new Script(patched);
 const segment=(source,start,end)=>{
   const i=source.indexOf(start);assert.ok(i>=0);const j=source.indexOf(end,i+start.length);
@@ -43,7 +43,7 @@ const touchOnly=structuredClone(actualManifest);
 touchOnly.patches[0].replacements.pop();
 const control=apply(original.toString(),touchOnly.patches[0].replacements);
 touchOnly.patches[0].patched_sha256=sha(Buffer.from(control));
-assert.equal(touchOnly.patches[0].patched_sha256,'c7b1fbd4b95a222f57ef8c565d6cde730281e746f63696871f0a014ec63b4d6b');
+assert.equal(touchOnly.patches[0].patched_sha256,'e4f8a785f07adf01d584f8759daab63d7777c16012fe88049185b090065d8f15');
 const manifests={'touch-only':touchOnly,'touch-plus-store':actualManifest};
 const clients={'touch-only':control,'touch-plus-store':patched};
 
@@ -300,10 +300,10 @@ test('gate plus candidate actual store: rejected tap, late click, new tap persis
   assert.equal(f.calls(), 2); assert.equal(complete, 1);
 });
 
-test('memory mode remains the existing process-local path and never writes Host', async () => {
+test('legacy memory flag cannot bypass the new Host acknowledgement contract', async () => {
   const f = storeFixture(candidateStore); f.publish({mode: 'memory'});
-  assert.equal(await f.store.acknowledge(), true);
-  assert.equal(f.calls(), 0); assert.equal(f.snapshot().acknowledged, true);
+  assert.equal(await f.store.acknowledge(), false);
+  assert.equal(f.calls(), 1); assert.equal(f.snapshot().acknowledged, false);
 });
 
 test('pending operation has no artificial timeout, retry, or optimistic completion', async () => {
@@ -623,9 +623,9 @@ function mount(source,name='WelcomeNotice'){
 }
 
 test('both canonical manifests reproduce bytes with exact counts and pinned original resource',()=>{
-  assert.equal(original.length,186641);assert.equal(sha(original),'7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa');
+  assert.equal(original.length,211258);assert.equal(sha(original),'190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28');
   for(const [name,m]of Object.entries(manifests)){
-    assert.equal(m.rootfs_sha256,'d3e055a6f98cc5d508a502aed88c3fca3c75f7b3217ee257d7e4773337d903a0');
+    assert.equal(m.rootfs_sha256,'8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504');
     assert.deepEqual(m.files,[]);assert.equal(m.patches.length,1);
     const p=m.patches[0];assert.equal(p.replacements.length,name==='touch-only'?4:5);
     assert.deepEqual(p.original_source,{source:'onboarding-client-original.js',sha256:sha(original)});
@@ -639,7 +639,7 @@ test('both canonical manifests reproduce bytes with exact counts and pinned orig
 test('head three old API replacements still reproduce known Build29 bytes exactly',()=>{
   const a=manifests['touch-only'].patches[0].replacements.slice(0,3);
   const b=manifests['touch-plus-store'].patches[0].replacements.slice(0,3);
-  assert.deepEqual(a,b);let previous=original.toString();
+  assert.deepEqual(a,b);let previous=readFileSync(resolve(root,'tests/DSHTests/onboarding-build29-original.js'),'utf8');
   for(const r of a)previous=previous.replace(r.find,r.replace);
   assert.equal(Buffer.byteLength(previous),191089);
   assert.equal(sha(Buffer.from(previous)),'b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5');

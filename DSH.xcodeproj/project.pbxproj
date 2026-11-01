@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A29C96261B01F673C8D2231 /* onboarding-build29-original.js in Resources */ = {isa = PBXBuildFile; fileRef = 5A29C96261B01F673C8D2230 /* onboarding-build29-original.js */; };
 		00FE12295610CD83EB3F41FE /* DSHGuestLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 8DBF761589E69D4C06A2039F /* DSHGuestLauncher.m */; };
 		017B7CD37287E5F8A3C4F4DE /* DSHStatusOverlayView.m in Sources */ = {isa = PBXBuildFile; fileRef = AD50938B24CA39E4112F4053 /* DSHStatusOverlayView.m */; };
 		047ACB9C4D972201B3854386 /* JobTracking.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 9549856D05B4DED5266A04D8 /* JobTracking.bundle */; };
@@ -216,6 +217,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5A29C96261B01F673C8D2230 /* onboarding-build29-original.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "onboarding-build29-original.js"; sourceTree = "<group>"; };
 		00D47C196885D5C970C8F528 /* package.json */ = {isa = PBXFileReference; includeInIndex = 1; path = package.json; sourceTree = "<group>"; };
 		0134E76BB0F2D586235B1169 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		02795D6715E77CA5D676E323 /* package.json */ = {isa = PBXFileReference; includeInIndex = 1; path = package.json; sourceTree = "<group>"; };
@@ -990,6 +992,7 @@
 				E8E39DBE2618AD569DD5A4F0 /* DSHMockLLMServer.h */,
 				0A15D8C28C10D28C444DE024 /* DSHTestHTTPServer.h */,
 				BB6E398E4DC1DB87A8DFBBAE /* Info.plist */,
+				5A29C96261B01F673C8D2230 /* onboarding-build29-original.js */,
 			);
 			name = DSHTests;
 			path = DSHTests;
@@ -1191,6 +1194,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A29C96261B01F673C8D2231 /* onboarding-build29-original.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

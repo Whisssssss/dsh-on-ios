@@ -12,17 +12,17 @@
     {
       "source": "job-ledger.mjs",
       "target": "/usr/local/lib/dsh-plugins/dsh-host-bridge/job-ledger.mjs",
-      "sha256": "06fda24c5715e516f65f8b14ce42e19588b900cfc234a4f1ca4bd225446b945f"
+      "sha256": "bd1d36f2f26597b26a2472b35b22f6cf824f62bf9abf9a007c6e4cba7ad565f6"
     },
     {
       "source": "workspace-export.mjs",
       "target": "/usr/local/lib/dsh-plugins/dsh-host-bridge/workspace-export.mjs",
-      "sha256": "0bec9f94d143e20014d85c5b8e040a33744b12cfbdacb4b927aa77e649a72a2f"
+      "sha256": "b72240326f93ef3307962f1f81f162d2735006290870eead1e6c3aad6a004799"
     },
     {
       "source": "job-tracking.mjs",
       "target": "/usr/local/lib/dsh-plugins/dsh-host-bridge/job-tracking.mjs",
-      "sha256": "6f58b135cb0ac1e2b49cf0fbc3f90b9f828eb71354a41cd106ffeed6e23da65c",
+      "sha256": "8b3cdc415483998e545ca340e19b7f18f54e644765596a28719aa6ae1994a988",
       "previous_sha256": [
         "e4c9c3061680436bd042dd322615d3c9f9e13704c2b728fbf68407b7edd034e1",
         "f79ee0c7467b916fe822dce94df0201c6f905d7ca8a3dac3274673e5d34b3510",

@@ -908,13 +908,13 @@ static NSString *DSHInstallerTestHash(NSData *data) {
     XCTAssertTrue([base isKindOfClass:NSDictionary.class]);
     if (![base isKindOfClass:NSDictionary.class]) return;
     XCTAssertEqualObjects(base, (@{@"source": @"onboarding-client-original.js",
-        @"sha256": @"7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa"}));
+        @"sha256": @"190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28"}));
     XCTAssertEqualObjects(patch[@"original_sha256"], base[@"sha256"]);
     XCTAssertEqualObjects(patch[@"previous_sha256"],
         (@[@"b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5"]));
     NSData *canonical = [NSData dataWithContentsOfURL:[bundle URLByAppendingPathComponent:@"onboarding-client-original.js"]];
     XCTAssertNotNil(canonical);
-    XCTAssertEqual(canonical.length, 186641u);
+    XCTAssertEqual(canonical.length, 211258u);
     XCTAssertEqualObjects(DSHInstallerTestHash(canonical), base[@"sha256"]);
 }
 
@@ -946,9 +946,15 @@ static NSString *DSHInstallerTestHash(NSData *data) {
     NSArray *replacements = patch[@"replacements"];
     XCTAssertGreaterThan(replacements.count, 3u, @"retain the three original API touch patches and add the explicit Welcome change");
     if (replacements.count <= 3) return NO;
-    XCTAssertEqual(canonical.length, 186641u);
-    XCTAssertEqualObjects(DSHInstallerTestHash(canonical), @"7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa");
-    NSData *previous = [self applyOnboardingReplacements:[replacements subarrayWithRange:NSMakeRange(0, 3)] toData:canonical];
+    XCTAssertEqual(canonical.length, 211258u);
+    XCTAssertEqualObjects(DSHInstallerTestHash(canonical), @"190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28");
+    // Preserve an actual old-version input; the new Harness canonical source
+    // cannot reproduce the historical Build 29 module.
+    NSURL *legacyURL = [[NSBundle bundleForClass:self.class] URLForResource:@"onboarding-build29-original" withExtension:@"js"];
+    NSData *legacy = legacyURL ? [NSData dataWithContentsOfURL:legacyURL] : nil;
+    XCTAssertNotNil(legacy);
+    if (!legacy) return NO;
+    NSData *previous = [self applyOnboardingReplacements:[replacements subarrayWithRange:NSMakeRange(0, 3)] toData:legacy];
     XCTAssertEqual(previous.length, 191089u);
     XCTAssertEqualObjects(DSHInstallerTestHash(previous), @"b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5");
     NSData *patched = [self applyOnboardingReplacements:replacements toData:canonical];
@@ -1009,7 +1015,7 @@ static NSString *DSHInstallerTestHash(NSData *data) {
         @{@"source": @"onboarding-client-original.js", @"sha256": DSHInstallerTestHash(self.original), @"unexpected": @YES},
         @{@"source": @"session-backend-original.js", @"sha256": DSHInstallerTestHash(self.original)},
         @{@"source": @"onboarding-client-original.js", @"sha256": DSHInstallerTestHash(self.onboardingPrevious)}];
-    NSArray *badPrevious = @[@[], @[@"invalid"], @[@"7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa"],
+    NSArray *badPrevious = @[@[], @[@"invalid"], @[@"190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28"],
         @[@"b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5", @"b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5"]];
     NSMutableArray *patches = [NSMutableArray array];
     for (id base in badBases) { NSMutableDictionary *p = [valid[@"patches"][0] mutableCopy]; p[@"original_source"] = base; [patches addObject:p]; }

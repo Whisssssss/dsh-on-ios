@@ -144,6 +144,25 @@ test('current session subdirectory confines sibling files even inside initial wo
   assert.equal((await f.run()).reason, 'file_outside_current_workspace'); assert.equal(f.events.length, 0);
 });
 
+test('registered export follows effective Harness cwd and retains authorized-root confinement', async t => {
+  const f = await fixture(t); const sub = join(f.root, 'project'); await mkdir(sub);
+  let current = sub, tool;
+  const ctx = { tools: { register(value) { tool = value; } }, get(name) {
+    assert.equal(name, 'workingDirectory');
+    return { get(session) { assert.equal(session, f.exec.agent.session); return current; } };
+  } };
+  installWorkspaceExport(ctx, value => value, f.options);
+  const run = () => tool.execute({ path: f.path }, f.exec).then(JSON.parse);
+  assert.equal((await run()).reason, 'file_outside_current_workspace');
+  current = f.directory;
+  assert.equal((await run()).reason, 'workspace_outside_authorized_root');
+  assert.equal(f.events.length, 0);
+  f.exec.agent.session.header.cwd = sub;
+  current = f.root;
+  assert.equal((await run()).saved, true);
+  assert.equal(f.exec.agent.session.header.cwd, sub);
+});
+
 test('sensitive directories, credentials, tokens and private key paths are denied', async t => {
   const f = await fixture(t);
   for (const name of ['.ssh/id_ed25519', '.git/config', '.env', '.dsh/config.yml', 'github-token.txt', 'credentials.json', 'signing.p12', 'id_rsa']) {

@@ -7,3 +7,4 @@ app/OnboardingInteraction.bundle/* text eol=lf
 tests/fixtures/welcome-touch-footer.js text eol=lf
 tests/job-* text eol=lf
 tests/development-tools-test.mjs text eol=lf
+tests/DSHTests/onboarding-build29-original.js text eol=lf

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only acceptance gate for the unsigned Build 31 iOS archive app.
+"""Read-only acceptance gate for the unsigned Build 32 iOS archive app.
 
 Checks package inclusion, identity, the fixed guest image and exact source
 resource bytes. Actual XCTest and iPad Files saving are separate evidence.
@@ -15,8 +15,8 @@ import struct
 import sys
 
 
-ROOTFS_SHA256 = "d3e055a6f98cc5d508a502aed88c3fca3c75f7b3217ee257d7e4773337d903a0"
-ROOTFS_BYTES = 157427502
+ROOTFS_SHA256 = "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504"
+ROOTFS_BYTES = 201769469
 CHUNK_BYTES = 1024 * 1024
 APP_ID = "com.xnuapp.dsh"
 BUNDLES = {
@@ -31,12 +31,14 @@ NATIVE_CLASSES = {"DSHWorkspaceExportStore", "DSHWorkspaceExportCapability"}
 ONBOARDING_SOURCE = "onboarding-client-original.js"
 ONBOARDING_TARGET = "/usr/local/lib/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js"
 ONBOARDING_ROOTFS_SHA256 = ROOTFS_SHA256
-ONBOARDING_ORIGINAL_BYTES = 186641
-ONBOARDING_ORIGINAL_SHA256 = "7674ed0ba2eef60fa7db91b4bf8cea4dc23e1f0a2f3dd1e6a2a67ad4c0d005fa"
+ONBOARDING_ORIGINAL_BYTES = 211258
+ONBOARDING_ORIGINAL_SHA256 = "190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28"
 ONBOARDING_BUILD29_BYTES = 191089
 ONBOARDING_BUILD29_SHA256 = "b687b66611b19ac8ebb793bc128c4c56675fc0fc6c7df8f7ddae6195134339b5"
-ONBOARDING_PATCHED_BYTES = 200500
-ONBOARDING_PATCHED_SHA256 = "d4f3634c7483237ad9627b0a4b06f6b5b04d538a5d96b304841afe09078bf9d5"
+ONBOARDING_CANCEL_BYTES = 215706
+ONBOARDING_CANCEL_SHA256 = "31e482fe6bd31590f39e27b291af1ffac1a7d7d195d72c040d7b410c187ce8c3"
+ONBOARDING_PATCHED_BYTES = 225117
+ONBOARDING_PATCHED_SHA256 = "db851f8ba82bab99b98ec3c07555d1808535eb44ef83471fbd5130ef60e0bdb8"
 
 
 class Rejected(Exception):
@@ -103,8 +105,8 @@ def inspect_onboarding(app):
         encoded = text.encode("utf-8")
         require(len(encoded) <= 4 * CHUNK_BYTES, "Onboarding replacement exceeds its size bound")
         if index == 2:
-            require(len(encoded) == ONBOARDING_BUILD29_BYTES and digest_bytes(encoded) == ONBOARDING_BUILD29_SHA256,
-                    "Onboarding first three patches do not preserve the Build 29 API patch")
+            require(len(encoded) == ONBOARDING_CANCEL_BYTES and digest_bytes(encoded) == ONBOARDING_CANCEL_SHA256,
+                    "Onboarding first three touch patches differ on the pinned Harness version")
     require(len(encoded) == ONBOARDING_PATCHED_BYTES and digest_bytes(encoded) == ONBOARDING_PATCHED_SHA256,
             "Onboarding replay result differs from the pinned interaction/store client")
     return {"canonical_source": ONBOARDING_SOURCE, "canonical_bytes": len(canonical),
@@ -288,9 +290,9 @@ def inspect(app, source_root):
     require(app.is_dir() and not app.is_symlink(), "archive app directory missing or symlinked")
     info = plistlib.loads(read_file(app / "Info.plist", 2 * CHUNK_BYTES))
     require(isinstance(info, dict), "Info.plist must be a dictionary")
-    expected = {"CFBundleIdentifier": APP_ID, "CFBundleShortVersionString": "1.1.0", "CFBundleVersion": "31",
+    expected = {"CFBundleIdentifier": APP_ID, "CFBundleShortVersionString": "1.1.1", "CFBundleVersion": "32",
                 "CFBundleExecutable": "DSH", "MinimumOSVersion": "16.0", "CFBundlePackageType": "APPL"}
-    require(all(info.get(key) == value for key, value in expected.items()), "App identity/version/minimum OS differs from Build 31 contract")
+    require(all(info.get(key) == value for key, value in expected.items()), "App identity/version/minimum OS differs from Build 32 contract")
     require(not (app / "embedded.mobileprovision").exists() and not (app / "_CodeSignature").exists(),
             "archive app unexpectedly has provisioning or signature resources")
     macho = inspect_macho(read_file(app / "DSH", 128 * CHUNK_BYTES))

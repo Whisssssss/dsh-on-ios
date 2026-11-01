@@ -5,7 +5,9 @@ import { join, resolve, parse, relative } from 'node:path';
 const MAX_BYTES = 256 * 1024;
 const MAX_RECORDS = 256;
 const RUN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const JOB = /^(bash|terminal|subagent)-[1-9][0-9]{0,15}$/;
+// Keep old numeric IDs readable; Harness 0.2.1 issues 16-character hex IDs.
+const JOB = /^(bash|terminal|subagent)-(?:[1-9][0-9]{0,15}|[a-f0-9]{16})$/;
+export const isJobID = value => typeof value === 'string' && JOB.test(value);
 const STATES = new Set(['running', 'stopping', 'succeeded', 'failed', 'interrupted', 'unknown']);
 const REASONS = new Set(['previous_run_unconfirmed', 'owner_or_service_teardown', 'removed_without_terminal_evidence']);
 export const scopeID = owner => typeof owner === 'string' && owner.length > 0
