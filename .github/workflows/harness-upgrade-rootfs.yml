@@ -1,0 +1,64 @@
+name: Build Harness upgrade rootfs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [upgrade/harness-0.2.1-rc.3]
+    paths:
+      - '.github/workflows/harness-upgrade-rootfs.yml'
+      - 'scripts/build-rootfs.sh'
+      - 'rootfs/staging/**'
+      - 'rootfs/overlay/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: harness-upgrade-rootfs-${{ github.sha }}
+  cancel-in-progress: false
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: '1'
+  HOMEBREW_NO_INSTALL_CLEANUP: '1'
+  HOMEBREW_NO_ENV_HINTS: '1'
+  HOMEBREW_NO_ANALYTICS: '1'
+
+jobs:
+  rootfs:
+    runs-on: macos-26
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install emulator build tools
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          brew install meson ninja lld libarchive
+          echo "$(brew --prefix lld)/bin" >> "$GITHUB_PATH"
+          echo "PKG_CONFIG_PATH=$(brew --prefix libarchive)/lib/pkgconfig" >> "$GITHUB_ENV"
+      - name: Build emulator and fresh pinned Harness image
+        run: |
+          set -euo pipefail
+          mkdir -p build/upgrade-logs
+          make emulator 2>&1 | tee build/upgrade-logs/emulator.log
+          bash scripts/build-rootfs.sh 2>&1 | tee build/upgrade-logs/rootfs.log
+      - name: Preserve upgrade image for compatibility and native testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-0.2.1-rc.3-rootfs
+          path: |
+            build/root.tar.gz
+            build/root.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - name: Preserve build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-upgrade-rootfs-logs
+          path: build/upgrade-logs/
+          retention-days: 14

@@ -3,7 +3,7 @@
   "private": true,
   "description": "Pins the @deepseek-ai/dsh tree that build-rootfs.sh installs into the guest (linux/arm64/musl).",
   "dependencies": {
-    "@deepseek-ai/dsh": "0.2.0-rc.2"
+    "@deepseek-ai/dsh": "0.2.1-rc.3"
   },
   "overrides": {
     "koffi": "3.1.6"

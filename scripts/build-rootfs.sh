@@ -26,7 +26,7 @@ ALPINE_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VER}/releases/aarch6
 # which DeepSeek still accepts but routes to the V4.1 model without saying so.
 # 0.2.x keeps `cordis.patch.yml` as the profile patch layer, so the guest's
 # existing home layout and settings survive the upgrade.
-DSH_VERSION="${DSH_VERSION:-0.2.0-rc.2}"
+DSH_VERSION="${DSH_VERSION:-0.2.1-rc.3}"
 
 log() { printf '\033[1;34m==> %s\033[0m\n' "$*"; }
 die() { printf '\033[1;31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
