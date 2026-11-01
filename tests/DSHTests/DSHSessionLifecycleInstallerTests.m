@@ -702,14 +702,10 @@ static NSString *DSHInstallerTestHash(NSData *data) {
     }
     XCTAssertNotNil(trackingRecord);
     if (!trackingRecord) return NO;
-    NSString *fixed = @"  // Harness passes (arguments, validated output); rendering the first argument\n"
-        @"  // would put an object in text and invalidate the next model request.\n"
-        @"  const output = { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] };";
-    NSString *build30 = @"  const output = { schema: { type: 'string' }, render: value => [{ type: 'text', text: value }] };";
-    NSString *current = [[NSString alloc] initWithData:resources[@"job-tracking.mjs"] encoding:NSUTF8StringEncoding];
-    XCTAssertEqual([current componentsSeparatedByString:fixed].count, 2u, @"reverse exactly this P0 change");
-    if ([current componentsSeparatedByString:fixed].count != 2) return NO;
-    NSData *previous = DSHInstallerTestData([current stringByReplacingOccurrencesOfString:fixed withString:build30]);
+    NSURL *legacyURL = [[NSBundle bundleForClass:self.class] URLForResource:@"job-tracking-build30" withExtension:@"mjs"];
+    NSData *previous = legacyURL ? [NSData dataWithContentsOfURL:legacyURL] : nil;
+    XCTAssertNotNil(previous, @"the immutable shipped Build 30 controller is required");
+    if (!previous) return NO;
     NSString *build30Hash = @"c9cc080296548688fe58f5a8345234fe3c0183a0de29485cec11fb2d4174f3fb";
     XCTAssertEqualObjects(DSHInstallerTestHash(previous), build30Hash, @"fixture must reproduce the shipped Build 30 bytes");
     XCTAssertTrue([trackingRecord[@"previous_sha256"] containsObject:build30Hash], @"actual manifest must authorize a Build 30 upgrade");

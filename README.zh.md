@@ -1,4 +1,8 @@
-# DSH iOS — 1.1.0（Build 31）
+# DSH iOS — 1.1.1（Build 32，验证中）
+
+本分支将内置 Harness 从 `0.2.0-rc.2` 升至 `0.2.1-rc.3`，使用 Node `22.23.4`。
+Build 32 正在进行原生与 guest 完整验收；下方下载说明仍对应之前交付的 Build 31。
+本次不包含 Superagent 原型部署。升级适配和验证状态见 [更新记录](CHANGELOG.md)。
 
 本仓库 **fork 自 [everettjf/dsh-ios](https://github.com/everettjf/dsh-ios)**。
 感谢 Everett 和上游贡献者提供原始 iOS 集成，也感谢 DeepSeek Harness、iSH / iSH-ARM64、

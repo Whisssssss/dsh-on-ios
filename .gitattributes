@@ -8,3 +8,4 @@ tests/fixtures/welcome-touch-footer.js text eol=lf
 tests/job-* text eol=lf
 tests/development-tools-test.mjs text eol=lf
 tests/DSHTests/onboarding-build29-original.js text eol=lf
+tests/DSHTests/job-tracking-build30.mjs text eol=lf

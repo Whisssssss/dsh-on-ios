@@ -30,7 +30,13 @@ BOOT_TIMEOUT="${DSH_BOOT_TIMEOUT:-600}"
 # run that first exposed this). So the loop gives up early on a log that has
 # both announced its URL and stopped growing for this many consecutive seconds.
 SERVE_IDLE_GRACE="${DSH_SERVE_IDLE_GRACE:-10}"
-GUEST_TIMEOUT="${DSH_GUEST_TIMEOUT:-90}"
+# Harness 0.2.1-rc.3's cold headless graph exceeds the old 90-second ceiling on
+# the ARM64 emulator: run 41271221810 sampled active JIT execution before any
+# request, and the real Simulator round trip took 91.852 seconds. Keep a finite
+# cold-start allowance while requiring both the reply and normal process exit.
+# Receipts retain elapsed time, the 75-second sample and the actual wait status;
+# a deadline exit is still a failure even if business output arrived.
+GUEST_TIMEOUT="${DSH_GUEST_TIMEOUT:-180}"
 
 pass=0; fail=0
 GUEST_SEQUENCE=0; GUEST_FAILURES=0; GUEST_STATUS=0
