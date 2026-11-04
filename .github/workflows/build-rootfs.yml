@@ -1,0 +1,113 @@
+name: Build guest rootfs
+
+# 独立构建 Alpine+Node+dsh 的 guest 镜像，产出 build/root.tar.gz 并上传为 artifact。
+# upstream 的做法是在自己的 Mac 上手工构建后把 artifact 的 run-id 写死进 build-ipa.yml；
+# 这个 workflow 让没有 Mac 的人也能在 CI 里构建，并明确输出 rootfs_sha256，
+# 供 app/*.bundle/manifest.json 回填。
+
+on:
+  workflow_dispatch:
+    inputs:
+      dsh_version:
+        description: "Override dsh version (leave empty to use rootfs/staging/package.json)"
+        type: string
+        default: ""
+      runner_label:
+        description: "macOS runner label"
+        type: choice
+        options:
+          - macos-26
+          - xcode-27
+        default: macos-26
+
+permissions:
+  contents: read
+
+jobs:
+  build-rootfs:
+    name: Build guest rootfs (${{ github.event.inputs.runner_label || 'macos-26' }})
+    runs-on: ${{ github.event.inputs.runner_label || 'macos-26' }}
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          set -euo pipefail
+          brew install meson ninja lld libarchive || true
+          command -v meson ninja ld.lld
+          ld.lld --version
+
+      - name: Show pinned dsh version
+        run: |
+          set -euo pipefail
+          echo "staging: $(node -p "require('./rootfs/staging/package.json').dependencies['@deepseek-ai/dsh']")"
+          grep 'DSH_VERSION=' scripts/build-rootfs.sh
+
+      - name: Build iSH-ARM64 emulator
+        run: |
+          set -euo pipefail
+          make emulator 2>&1 | tee build-emulator.log
+
+      - name: Build guest rootfs
+        env:
+          INPUT_DSH_VERSION: ${{ github.event.inputs.dsh_version }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_DSH_VERSION}" ]; then
+            echo "overriding DSH_VERSION=${INPUT_DSH_VERSION}"
+            export DSH_VERSION="${INPUT_DSH_VERSION}"
+          fi
+          make rootfs 2>&1 | tee build-rootfs.log
+
+      - name: Report rootfs hash
+        id: hashes
+        run: |
+          set -euo pipefail
+          ls -lh build/root.tar.gz
+          SHA=$(shasum -a 256 build/root.tar.gz | awk '{print $1}')
+          BYTES=$(stat -f%z build/root.tar.gz)
+          NODE_VER=$(node -p "require('./rootfs/staging/package.json').dependencies['@deepseek-ai/dsh']")
+          echo "rootfs_sha256=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "rootfs_bytes=${BYTES}" >> "$GITHUB_OUTPUT"
+          echo "dsh_version=${NODE_VER}" >> "$GITHUB_OUTPUT"
+          echo "ROOTFS_SHA256=${SHA}"
+          echo "ROOTFS_BYTES=${BYTES}"
+          echo "DSH_VERSION=${NODE_VER}"
+
+      - name: Upload rootfs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rootfs-${{ steps.hashes.outputs.dsh_version }}
+          path: build/root.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rootfs-build-logs
+          path: |
+            build-emulator.log
+            build-rootfs.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Summary
+        run: |
+          set -euo pipefail
+          {
+            echo "### Guest rootfs built"
+            echo ""
+            echo "| field | value |"
+            echo "|---|---|"
+            echo "| dsh version | \`${{ steps.hashes.outputs.dsh_version }}\` |"
+            echo "| rootfs_sha256 | \`${{ steps.hashes.outputs.rootfs_sha256 }}\` |"
+            echo "| rootfs_bytes | \`${{ steps.hashes.outputs.rootfs_bytes }}\` |"
+            echo ""
+            echo "把 \`rootfs_sha256\` 写进 \`app/SessionLifecycle.bundle/manifest.json\`，"
+            echo "并把这是第几个 run 的 id 记进 \`rootfs/harness-<version>-image.json\`。"
+          } >> "$GITHUB_STEP_SUMMARY"
