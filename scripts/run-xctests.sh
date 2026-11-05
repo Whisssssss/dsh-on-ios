@@ -38,10 +38,37 @@ PY
   DEVICE_TYPE="$(sed -n '1p' build/TestResults/simulator-selection.txt)"
   RUNTIME="$(sed -n '2p' build/TestResults/simulator-selection.txt)"
 }
+# Create a disposable simulator. Newer Xcode previews reject some
+# device-type/runtime pairings with "Incompatible device" (SimError 403), so
+# fall back to an already-available iPad simulator instead of failing the run.
+create_simulator() {
+  local prefix="$1" id
+  if id="$(xcrun simctl create "${prefix}-${GITHUB_RUN_ID:-local}-$$" "$DEVICE_TYPE" "$RUNTIME" 2>build/TestResults/simctl-create.err)"; then
+    OWNED_SIMULATORS+=("$id")
+    printf '%s' "$id"
+    return 0
+  fi
+  echo "warning: simctl create failed for ${DEVICE_TYPE} / ${RUNTIME}; falling back to an existing iPad simulator" >&2
+  cat build/TestResults/simctl-create.err >&2 2>/dev/null || true
+  id="$(xcrun simctl list devices available --json | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+for runtime, devices in data.get("devices", {}).items():
+    if ".iOS-" not in runtime:
+        continue
+    for device in devices:
+        if device.get("name", "").startswith("iPad") and device.get("isAvailable"):
+            print(device["udid"])
+            sys.exit(0)
+sys.exit(1)
+')" || { echo "error: no usable iPad simulator available" >&2; return 1; }
+  echo "warning: using existing simulator $id (not owned; left in place)" >&2
+  printf '%s' "$id"
+}
+
 if [ -z "$SIMULATOR_ID" ]; then
   select_simulator_type
-  SIMULATOR_ID="$(xcrun simctl create "DSH-XCTest-${GITHUB_RUN_ID:-local}-$$" "$DEVICE_TYPE" "$RUNTIME")"
-  OWNED_SIMULATORS+=("$SIMULATOR_ID")
+  SIMULATOR_ID="$(create_simulator DSH-XCTest)"
 fi
 echo "XCTest destination: iPad simulator $SIMULATOR_ID"
 xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
@@ -137,8 +164,7 @@ done
 if [ -z "${DEVICE_TYPE:-}" ]; then
   select_simulator_type
 fi
-SIMULATOR_ID="$(xcrun simctl create "DSH-UI-XCTest-${GITHUB_RUN_ID:-local}-$$" "$DEVICE_TYPE" "$RUNTIME")"
-OWNED_SIMULATORS+=("$SIMULATOR_ID")
+SIMULATOR_ID="$(create_simulator DSH-UI-XCTest)"
 echo "UI XCTest destination: fresh iPad simulator $SIMULATOR_ID"
 xcrun simctl boot "$SIMULATOR_ID"
 xcrun simctl bootstatus "$SIMULATOR_ID" -b

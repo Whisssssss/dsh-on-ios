@@ -198,8 +198,8 @@ for name in ('Archive app (unsigned)', 'Verify archived workspace export compone
         assert "steps.archive_contents.outcome == 'success'" in step, name + ' lacks archive inclusion gate'
 assert 'id: required_exports' in workflow and 'scripts/check-required-export-tests.py --results-dir build/TestResults' in workflow
 assert 'id: archive_contents' in workflow and 'scripts/check-workspace-export-app.py --app build/DSH.xcarchive/Products/Applications/DSH.app' in workflow
-assert workflow.count('run-id: 41269402665') == 2
-assert workflow.count('name: harness-0.2.1-rc.3-rootfs') == 2
+assert workflow.count('run-id: 41964293074') == 2
+assert workflow.count('name: rootfs-0.2.1-rc.3') == 2
 assert workflow.count("'Harness upgrade rootfs differs from the reviewed image'") == 2
 step = workflow.split("      - name: Require this attempt's guest verification before IPA\n", 1)[1].split('      - name:', 1)[0]
 assert 'id: verification_gate' in step and 'python3 scripts/check-verification-gate.py' in step
