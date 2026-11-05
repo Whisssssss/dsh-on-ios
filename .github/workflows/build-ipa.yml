@@ -23,6 +23,10 @@ on:
         description: "Archive/package an unsigned IPA after all tests pass"
         type: boolean
         default: false
+      skip_guest_gate:
+        description: "Package the IPA even if the same-attempt guest verification job failed (escape hatch for CI emulator timeouts; never for a release)"
+        type: boolean
+        default: false
       force_rootfs:
         description: "Ignore cache and restore the verified pinned guest rootfs"
         type: boolean
@@ -313,6 +317,11 @@ jobs:
           VERIFY_JOB_NAME: Verify guest image boots and dsh serves (${{ github.event.inputs.runner_label || 'xcode-27' }})
         run: |
           set -euo pipefail
+          if [ "${{ inputs.skip_guest_gate }}" = "true" ]; then
+            echo "::warning::guest verification gate skipped by manual override (skip_guest_gate=true)"
+            echo "guest verification skipped by manual override; packaging continues against the verified rootfs" | tee cilogs/verification-gate.log
+            exit 0
+          fi
           python3 scripts/check-verification-gate.py 2>&1 | tee cilogs/verification-gate.log
 
       - name: Archive app (unsigned)
