@@ -22,7 +22,7 @@
   "artifact_download_url": "https://github.com/wjc19980523-glitch/dsh-ios-ipa/actions/runs/41276110973/artifacts/13072198716",
   "artifact_expires_at": "2026-12-01T06:01:49Z",
   "github_release_published": false,
-  "rootfs_sha256": "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504",
+  "rootfs_sha256": "49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6",
   "rootfs_provenance": "rootfs/harness-0.2.1-rc.3-image.json",
   "signed": false,
   "stable_release": false,

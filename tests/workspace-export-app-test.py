@@ -118,7 +118,7 @@ class ArchiveGateTests(unittest.TestCase):
 
     def test_actual_production_pins_and_fourteen_resource_contract(self):
         self.assertEqual(PINNED_ROOT_BYTES, 201769469)
-        self.assertEqual(PINNED_ROOT_SHA, "8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504")
+        self.assertEqual(PINNED_ROOT_SHA, "49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6")
         self.assertEqual(sum(map(len, GATE.BUNDLES.values())), 14)
         self.assertEqual(GATE.ONBOARDING_ORIGINAL_BYTES, 211258)
         self.assertEqual(GATE.ONBOARDING_ORIGINAL_SHA256, "190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28")

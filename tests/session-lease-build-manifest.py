@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = ROOT / 'app/SessionLifecycle.bundle'
 TARGET = '/usr/local/lib/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js'
 ORIGINAL_SHA = '973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984'
-ROOTFS_SHA = '8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504'
+ROOTFS_SHA = '49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6'
 
 
 def build(source):

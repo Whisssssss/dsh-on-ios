@@ -62,7 +62,7 @@ def build(source):
     return {
         'schema': 1,
         'name': 'jitless-public-web-fetch-transport-v1',
-        'rootfs_sha256': '8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504',
+        'rootfs_sha256': '49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6',
         'patches': [{
             'target': TARGET,
             'original_sha256': hashlib.sha256(source).hexdigest(),

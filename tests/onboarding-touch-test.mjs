@@ -79,7 +79,7 @@ function tap(f, endOptions = {}) {
 
 test('pinned package patch has exact scope and no extra guest resources', () => {
   assert.equal(manifest.schema, 1);
-  assert.equal(manifest.rootfs_sha256, '8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504');
+  assert.equal(manifest.rootfs_sha256, '49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6');
   assert.deepEqual(manifest.files, []); assert.equal(manifest.patches.length, 1);
   assert.equal(patch.target, '/usr/local/lib/node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js');
   assert.equal(patch.original_sha256, '190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28');

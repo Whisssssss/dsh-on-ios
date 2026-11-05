@@ -625,7 +625,7 @@ function mount(source,name='WelcomeNotice'){
 test('both canonical manifests reproduce bytes with exact counts and pinned original resource',()=>{
   assert.equal(original.length,211258);assert.equal(sha(original),'190498e15358bcd3fe6810fe6368023a20b0403e3ea493bc979eca9bdb593b28');
   for(const [name,m]of Object.entries(manifests)){
-    assert.equal(m.rootfs_sha256,'8b6c2484971301d8d0448a21c1ea21c46ca79faa1291825fba970d28bdf14504');
+    assert.equal(m.rootfs_sha256,'49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6');
     assert.deepEqual(m.files,[]);assert.equal(m.patches.length,1);
     const p=m.patches[0];assert.equal(p.replacements.length,name==='touch-only'?4:5);
     assert.deepEqual(p.original_source,{source:'onboarding-client-original.js',sha256:sha(original)});
