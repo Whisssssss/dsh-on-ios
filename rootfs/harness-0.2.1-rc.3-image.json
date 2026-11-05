@@ -7,6 +7,6 @@
   "artifact_name": "harness-0.2.1-rc.3-rootfs",
   "artifact_bytes": 201769860,
   "artifact_sha256": "7eabf30e6a976cce1a8816d14b91af8adeb3472142980a34259be7690a7f1783",
-  "rootfs_bytes": 201769469,
+  "rootfs_bytes": 201784158,
   "rootfs_sha256": "49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6"
 }

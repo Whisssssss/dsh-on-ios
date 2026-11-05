@@ -117,7 +117,7 @@ class ArchiveGateTests(unittest.TestCase):
         self.write_onboarding_manifest(json.dumps(manifest).encode())
 
     def test_actual_production_pins_and_fourteen_resource_contract(self):
-        self.assertEqual(PINNED_ROOT_BYTES, 201769469)
+        self.assertEqual(PINNED_ROOT_BYTES, 201784158)
         self.assertEqual(PINNED_ROOT_SHA, "49a13141d37a56501a9bbc3f38fcf69f3e6c02fcf7290b6da57ffe779aa07fb6")
         self.assertEqual(sum(map(len, GATE.BUNDLES.values())), 14)
         self.assertEqual(GATE.ONBOARDING_ORIGINAL_BYTES, 211258)
