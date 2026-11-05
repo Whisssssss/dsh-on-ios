@@ -26,3 +26,4 @@ AuthKey_*.p8
 ExportOptions.local.plist
 releases/*.ipa
 releases/*.zip
+build-artifact/

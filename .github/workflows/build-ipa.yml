@@ -268,8 +268,8 @@ jobs:
         with:
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          run-id: 41269402665
-          name: harness-0.2.1-rc.3-rootfs
+          run-id: 41964293074
+          name: rootfs-0.2.1-rc.3
           path: build
 
       - name: Verify rootfs
@@ -487,8 +487,8 @@ jobs:
         with:
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          run-id: 41269402665
-          name: harness-0.2.1-rc.3-rootfs
+          run-id: 41964293074
+          name: rootfs-0.2.1-rc.3
           path: build
 
       - name: Verify rootfs present
